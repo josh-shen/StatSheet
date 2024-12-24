@@ -1,7 +1,7 @@
 const {app, BrowserWindow} = require('electron')
 const {join} = require('path')
 const {fetch_lineups, fetch_stats, fetch_game_ids, fetch_props, fetch_play_types} = require('./utils/fetchers.js')
-const {PTS_URL, ADV_URL, REB_URL, AST_URL, USG_URL} = require('./utils/urls.js')
+const {PTS_ENDPOINT, ADV_ENDPOINT, REB_ENDPOINT, AST_ENDPOINT, USG_ENDPOINT} = require('./utils/endpoints.js')
 const {create_table} = require('./utils/utils.js')
 
 async function createWindow() {
@@ -25,11 +25,11 @@ async function createWindow() {
             ]
         ],//await fetch_lineups(),
         stats: {
-            points: await fetch_stats(PTS_URL()),
-            adv: await fetch_stats(ADV_URL()),
-            usg: await fetch_stats(USG_URL()),
-            rebounds: await fetch_stats(REB_URL()),
-            assists: await fetch_stats(AST_URL()),
+            points: await fetch_stats(PTS_ENDPOINT()),
+            adv: await fetch_stats(ADV_ENDPOINT()),
+            usg: await fetch_stats(USG_ENDPOINT()),
+            rebounds: await fetch_stats(REB_ENDPOINT()),
+            assists: await fetch_stats(AST_ENDPOINT()),
         },
         props: {
             //pts: await fetch_props(ids, 'player_points'),

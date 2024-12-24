@@ -1,13 +1,13 @@
 const axios = require('axios')
 const jsdom = require('jsdom').JSDOM
-const {header, LINEUP_URL, GAME_ID_URL, ODDS_URL, PLAYTYPE_URL} = require("./urls.js")
+const {header, LINEUP_ENDPOINT, GAME_ID_ENDPOINT, ODDS_ENDPOINT, PLAYTYPE_ENDPOINT} = require("./endpoints.js")
 const {normalize_name} = require('./utils.js')
 
 async function fetch_lineups() {
     const lineups = []
 
     try {
-        const dom = await jsdom.fromURL(LINEUP_URL)
+        const dom = await jsdom.fromURL(LINEUP_ENDPOINT)
         const tables = dom.window.document.querySelectorAll(".datatable");
 
         for (let i = 0; i < tables.length; i++) {
@@ -58,7 +58,7 @@ async function fetch_stats(url) {
 
 async function fetch_game_ids() {
     try {
-        const response = await axios.get(GAME_ID_URL())
+        const response = await axios.get(GAME_ID_ENDPOINT())
         const games = await response.data
 
         const ids = []
@@ -71,12 +71,11 @@ async function fetch_game_ids() {
 }
 
 async function fetch_props(ids, prop) {
-    const player_list = []
     const prop_lines = []
 
     for (const id of ids) {
         try {
-            const response = await axios.get(ODDS_URL(id, prop))
+            const response = await axios.get(ODDS_ENDPOINT(id, prop))
             const data = await response.data
 
             const lines = data['bookmakers'][0]['markets'][0]['outcomes']
@@ -102,7 +101,7 @@ async function fetch_play_types(p_t, o_d) {
 
     for (const playType of play_types) {
         try {
-            const response = await axios.get(PLAYTYPE_URL(playType, p_t, o_d), {headers: header})
+            const response = await axios.get(PLAYTYPE_ENDPOINT(playType, p_t, o_d), {headers: header})
             const data = await response.data
 
             res[playType] = data["resultSets"][0]['rowSet']
