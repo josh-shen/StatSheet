@@ -1,0 +1,13 @@
+html, body {
+    height: 100%;
+}
+body {
+    margin: 0;
+}
+#table {
+    height: 55%;
+}
+#piechart {
+    width: 500px;
+    height: 300px;
+}

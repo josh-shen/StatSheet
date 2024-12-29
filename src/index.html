@@ -2,19 +2,19 @@
 <html lang="en">
     <head>
         <title>Title</title>
-        <meta http-equiv="Content-Security-Policy"/>
+        <meta http-equiv="Content-Security-Policy" charset="utf-8"/>
         <script type="text/javascript" src="https://www.gstatic.com/charts/loader.js"></script>
-        <script src="https://cdn.jsdelivr.net/npm/ag-grid-community/dist/ag-grid-community.min.js"></script>
         <script src="renderer.js"></script>
+        <link rel="stylesheet" href="styles.css">
     </head>
     <body>
-        <div id="grid" style="height: 500px"></div>
+        <div id="table"></div>
         <div>
             <label for="select_player"></label>
             <select id="select_player">
                 <option>Choose a player</option>
             </select>
         </div>
-        <div id="piechart" style="width: 900px; height: 300px;"></div>
+        <div id="piechart"></div>
     </body>
 </html>

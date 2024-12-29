@@ -13,23 +13,66 @@ async function fetch_lineups() {
         for (let i = 0; i < tables.length; i++) {
             const headers = tables[i].getElementsByTagName("th");
 
-            const teams = []
+            const teams = {}
+            teams['injury'] = []
             for (let j = 0; j < headers.length; j++) {
                 if (headers[j].textContent.includes(" @ ")) {
-                    // 32 34
                     let s = headers[j].textContent.split(" ");
-                    teams.push(s[32])
-                    teams.push([34].trim())
+                    teams['home'] = s[32]
+                    teams['away'] = s[34].trim()
+
+                    let lines = headers[j].querySelector("small")
+                    if (!lines) {
+                        teams['favorite'] = 'LIVE'
+                        teams['spread'] = 0
+                        teams['total'] = 'LIVE'
+                    } else {
+                        lines = lines.textContent.split(" ");
+
+                        if (lines[0] === 'EVEN') {
+                            teams['favorite'] = lines[0]
+                            teams['spread'] = 0
+                            teams['total'] = lines[2]
+                        } else {
+                            teams['favorite'] = lines[0]
+                            teams['spread'] = lines[2]
+                            teams['total'] = lines[4]
+                        }
+                    }
                 }
             }
 
-            const names = tables[i].querySelectorAll("a");
+            const names = tables[i].querySelectorAll("td[class=''], td[class='verified']");
             const home = []
             const away = []
             let flag = true
 
             for (let j = 0; j < names.length; j++) {
-                const name = normalize_name(names[j].textContent);
+                let name = names[j].querySelector("a")
+                const injury = names[j].querySelector("span")
+
+                if (injury && !injury.textContent.includes('Playing')) {
+                    switch (j) { // there has to be a better way to do this
+                        case 1:
+                            teams['injury'].push(6)
+                            break
+                        case 3:
+                            teams['injury'].push(7)
+                            break
+                        case 5:
+                            teams['injury'].push(8)
+                            break
+                        case 7:
+                            teams['injury'].push(9)
+                            break
+                        case 9:
+                            teams['injury'].push(10)
+                            break
+                    }
+                }
+
+                name = (name) ? normalize_name(name.textContent) : ''
+
                 if (flag) {
                     home.push(name)
                 } else {

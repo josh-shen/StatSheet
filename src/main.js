@@ -14,16 +14,11 @@ async function createWindow() {
             nodeIntegration: true
         }
     })
+
     //const ids = await fetch_game_ids()
 
     const database = {
-        lineups: [
-            [
-                'Jalen Brunson', ' Mikal Bridges', 'Josh Hart', 'OG Anunoby', 'Karl-Anthony Towns',
-                ['NYK', 'SAS'],
-                'Chris Paul', 'Devin Vassell', 'Jeremy Sochan', 'Harrison Barnes', 'Victor Wembanyama'
-            ]
-        ],//await fetch_lineups(),
+        lineups: await fetch_lineups(),
         stats: {
             points: await fetch_stats(PTS_ENDPOINT()),
             adv: await fetch_stats(ADV_ENDPOINT()),

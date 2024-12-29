@@ -22,97 +22,132 @@ function normalize_name(n) {
         'Vasilije Micic': 'Vasilije Micić'
     }
 
-    if (n.slice(-2) === "Jr") { return n.slice(0, -2) + 'Jr.' }
+    if (n.slice(-2) === "Jr") return n.slice(0, -2) + 'Jr.'
 
-    if (n in names) {
-        return names[n]
-    } else {
-        return n
-    }
+    return (n in names) ? names[n] : n
 }
 
-function filter(data, name) {
-    for (let i = 0; i < data.length; i++) {
-        const n = normalize_name(data[i][1])
+function filter(stats, name) {
+    for (let i = 0; i < stats.length; i++) {
+        if (stats[i][1] === null) continue
+        const n = normalize_name(stats[i][1])
         if (n === name) {
-            data[i][1] = n
-            return data[i]
+            stats[i][1] = n
+            return stats[i]
         }
     }
-    return data[0]
+    return stats[0]
 }
 
 function find_index(n, name) {
-    const index = n.findIndex(element => element.name === name)
+    const index = n.findIndex(element => element.description === name)
 
     if (index) {return index}
     return -1
 }
 
+function projection(pts_stats) {
+    const projected_fg = (pts_stats[12] - pts_stats[15] * pts_stats[13] * 2)
+    const projected_tp = (pts_stats[15] * pts_stats[16] * 3)
+    const projected_ft = (pts_stats[18] * pts_stats[19])
+    return (projected_fg + projected_tp + projected_ft).toFixed(1)
+}
+
 function create_table(database){
     const table = []
 
+    table.push([
+        {label: '----------------------------------------', type: 'string'},
+        {label: 'points', type: 'number'},
+        {type: 'number'},
+        {type: 'number'},
+        {label: 'min', type: 'number'},
+        {label: 'pts', type: 'number'},
+        {label: 'proj', type: 'number'},
+        {label: 'fga', type: 'number'},
+        {label: 'fg%', type: 'number'},
+        {label: '3pa', type: 'number'},
+        {label: '3p%', type: 'number'},
+        {label: 'fta', type: 'number'},
+        {label: 'ft%', type: 'number'},
+        {label: 'usg%', type: 'number'},
+        {label: '%pts', type: 'number'},
+        {label: 'rebounds', type: 'number'},
+        {type: 'number'},
+        {label: 'oreb', type: 'number'},
+        {label: 'dreb', type: 'number'},
+        {label: 'reb', type: 'number'},
+        {label: 'chances', type: 'number'},
+        {label: '%chances', type: 'number'},
+        {label: '%contested', type: 'number'},
+        {label: '%reb', type: 'number'},
+        {label: 'assists', type: 'number'},
+        {type: 'number'},
+        {label: 'ast', type: 'number'},
+        {label: 'potentials', type: 'number'},
+        {label: 'passes', type: 'number'},
+        {label: 'ast/pass', type: 'number'},
+        {label: '%ast', type: 'number'}
+    ])
+
     for (const group of database.lineups) {
         for (const name of group) {
-            const player_row = {}
+            const player_row = []
 
-            if (Array.isArray(name)) {
-                //table.push([-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1])
+            if (typeof name !== 'string') {
+                table.push(['',null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null])
                 continue
             }
+            
+            const pts_stats = filter(database.stats.points, name)
+            const adv_stats = filter(database.stats.adv, name)
+            const reb_stats = filter(database.stats.rebounds, name)
+            const ast_stats = filter(database.stats.assists, name)
+            const usg_stats = filter(database.stats.usg, name)
+            let index = -1
 
-            const pts_s = filter(database.stats.points, name)
-            const adv_s = filter(database.stats.adv, name)
-            const reb_s = filter(database.stats.rebounds, name)
-            const ast_s = filter(database.stats.assists, name)
-            const usg_s = filter(database.stats.usg, name)
-            let index
-
-            player_row['name'] = name
+            player_row.push(name)
             //index = find_index(database.props.pts, name)
-            index=-1
-            const pts = (index === -1 ?
-                -1 : database.props.pts[1][index]['point'])
-            player_row['points'] = pts
-            player_row['min/game'] = pts_s[10]
-            player_row['pts/game'] = pts_s[30]
-            const proj =
-                (pts_s[12] - pts_s[15] * pts_s[13] * 2) +
-                (pts_s[15] * pts_s[16] * 3) +
-                (pts_s[18] * pts_s[19])
-            player_row['projected'] = proj.toFixed(1)
-            player_row['fga'] = (pts_s[12] - pts_s[15]).toFixed(1)
-            player_row['fg%'] = pts_s[13].toFixed(2)
-            player_row['3pa'] = pts_s[15]
-            player_row['3p%'] = pts_s[16].toFixed(2)
-            player_row['fta'] = pts_s[18]
-            player_row['ft%'] = pts_s[19].toFixed(2)
-            player_row['%usg'] = adv_s[30]
-            player_row['%pts'] = usg_s[28]
+            const pts = (index === -1 ? -1 : database.props.pts[index]['point'])
+            player_row.push(pts)
+            player_row.push(pts - pts_stats[30])
+            const proj = projection(pts)
+            player_row.push(pts - proj)
+            player_row.push(pts_stats[10])
+            player_row.push(pts_stats[30])
+            player_row.push(proj)
+            player_row.push((pts_stats[12] - pts_stats[15]).toFixed(1))
+            player_row.push(pts_stats[13].toFixed(2))
+            player_row.push(pts_stats[15])
+            player_row.push(pts_stats[16].toFixed(2))
+            player_row.push(pts_stats[18])
+            player_row.push(pts_stats[19].toFixed(2))
+            player_row.push(adv_stats[30])
+            player_row.push(usg_stats[28])
             //index = find_index(database.props.reb, name)
-            const reb = (index === -1 ?
-                -1 : database.props.reb[1][index]['point'])
-            player_row['rebounds'] = reb
-            player_row['oreb'] = reb_s[8]
-            player_row['dreb'] = reb_s[17]
-            player_row['reb/game'] = (reb_s[8] + reb_s[17]).toFixed(2)
-            player_row['chances'] = reb_s[30].toFixed(2)
-            player_row['%chances'] = ((reb_s[8] + reb_s[17]) / reb_s[30]).toFixed(2)
-            player_row['%contested'] = reb_s[29]
-            player_row['%reb'] = usg_s[20]
+            const reb = (index === -1 ? -1 : database.props.reb[index]['point'])
+            player_row.push(reb)
+            player_row.push(reb - (reb_stats[8] + reb_stats[17]).toFixed(2))
+            player_row.push(reb_stats[8])
+            player_row.push(reb_stats[17])
+            player_row.push((reb_stats[8] + reb_stats[17]).toFixed(2))
+            player_row.push(reb_stats[30].toFixed(2))
+            player_row.push(((reb_stats[8] + reb_stats[17]) / reb_stats[30]).toFixed(2))
+            player_row.push(reb_stats[29])
+            player_row.push(usg_stats[20])
             //index = find_index(database.props.ast, name)
-            const ast = (index === -1 ?
-                -1 : database.props.ast[1][index]['point'])
-            player_row['assists'] = ast
-            player_row['ast/game'] = ast_s[10]
-            player_row['potentials'] = ast_s[13]
-            player_row['passes'] = ast_s[8]
-            player_row['ast/pass'] = ast_s[16]
-            player_row['%ast'] = usg_s[21]
+            const ast = (index === -1 ? -1 : database.props.ast[index]['point'])
+            player_row.push(ast)
+            player_row.push(ast - ast_stats[10])
+            player_row.push(ast_stats[10])
+            player_row.push(ast_stats[13])
+            player_row.push(ast_stats[8])
+            player_row.push(ast_stats[16])
+            player_row.push(usg_stats[21])
 
             table.push(player_row)
         }
-        //table.push([-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1])
+        table.push(['',null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null])
     }
     return table
 }
