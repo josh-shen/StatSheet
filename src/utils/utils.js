@@ -111,7 +111,7 @@ function create_table(database){
             const pts = (index === -1 ? -1 : database.props.pts[index]['point'])
             player_row.push(pts)
             player_row.push(pts - pts_stats[30])
-            const proj = projection(pts)
+            const proj = projection(pts_stats)
             player_row.push(pts - proj)
             player_row.push(pts_stats[10])
             player_row.push(pts_stats[30])

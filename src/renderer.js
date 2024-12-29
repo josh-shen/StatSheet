@@ -66,25 +66,25 @@ window.loaderAPI.load((event, table, database) => {
             } else {
                 color = red
             }
-            if (database.lineups[i][5]['favorite'] === database.lineups[i][5]['home']) {
+            if (database.lineups[i][5]['favorite'] === database.lineups[i][5]['away']) {
                 for (let j = 0; j < 5; j++) {
                     const r = j + (i * 12)
-                    data.setProperty(r, 0, 'style', `background-color: ${color}`)
+                    data.setProperty(r, 0, 'style', `background-color: ${color}; text-align: right`)
                 }
                 for (let j = 5; j < 11; j++) {
                     const r = j + (i * 12)
                     const light_color = RGB_Linear_Shade(0.5, color)
-                    data.setProperty(r, 0, 'style', `background-color: ${light_color}`)
+                    data.setProperty(r, 0, 'style', `background-color: ${light_color}; text-align: right`)
                 }
             } else {
                 for (let j = 0; j < 6; j++) {
                     const r = j + (i * 12)
                     const light_color = RGB_Linear_Shade(0.5, color)
-                    data.setProperty(r, 0, 'style', `background-color: ${light_color}`)
+                    data.setProperty(r, 0, 'style', `background-color: ${light_color}; text-align: right`)
                 }
                 for (let j = 6; j < 11; j++) {
                     const r = j + (i * 12)
-                    data.setProperty(r, 0, 'style', `background-color: ${color}`)
+                    data.setProperty(r, 0, 'style', `background-color: ${color}; text-align: right`)
                 }
             }
 
@@ -209,7 +209,7 @@ window.loaderAPI.load((event, table, database) => {
 
     for (const group of database.lineups) {
         for (const name of group) {
-            if (Array.isArray(name)) continue
+            if (typeof name !== 'string') continue
 
             const element = document.createElement('option');
             element.textContent = name;
@@ -274,9 +274,9 @@ window.loaderAPI.load((event, table, database) => {
         for (const match of database.lineups) {
             const player_index = match.indexOf(event.target.value)
             if (player_index < 5) {
-                opponent = match[5][0]
+                opponent = match[5]['home']
             } else if (player_index > 5) {
-                opponent = match[5][1]
+                opponent = match[5]['away']
             } else {
                 continue
             }
@@ -298,7 +298,7 @@ window.loaderAPI.load((event, table, database) => {
                 }
             }
         }
-
+        console.log(percentile)
         google.charts.load('current', {'packages':['corechart']});
         google.charts.setOnLoadCallback(drawChart);
 
