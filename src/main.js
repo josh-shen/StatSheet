@@ -15,7 +15,7 @@ async function createWindow() {
         }
     })
 
-    //const ids = await fetch_game_ids()
+    const ids = await fetch_game_ids()
 
     const database = {
         lineups: await fetch_lineups(),
@@ -27,9 +27,9 @@ async function createWindow() {
             assists: await fetch_stats(AST_ENDPOINT()),
         },
         props: {
-            //pts: await fetch_props(ids, 'player_points'),
-            //reb: await fetch_props(ids, 'player_rebounds'),
-            //ast: await fetch_props(ids, 'player_assists'),
+            pts: await fetch_props(ids, 'player_points'),
+            reb: await fetch_props(ids, 'player_rebounds'),
+            ast: await fetch_props(ids, 'player_assists'),
         },
         play_types: await fetch_play_types('P', 'offensive'),
         play_types_defense: await fetch_play_types('T', 'defensive')

@@ -1,3 +1,5 @@
+require('dotenv').config()
+
 const header = {
     'Dnt': '1',
     'Host': 'stats.nba.com',
@@ -32,10 +34,10 @@ function GAME_ID_ENDPOINT() {
     const time = new Date()
     time.setHours(24, 0, 0, 0);
 
-    return `https://api.the-odds-api.com/v4/sports/basketball_nba/events?apiKey=${API_KEY}&commenceTimeTo=${time.toISOString().split('.')[0]+'Z'}`
+    return `https://api.the-odds-api.com/v4/sports/basketball_nba/events?apiKey=${process.env.API_KEY}&commenceTimeTo=${time.toISOString().split('.')[0]+'Z'}`
 }
 function ODDS_ENDPOINT(id, prop) {
-    return `https://api.the-odds-api.com/v4/sports/basketball_nba/events/${id}/odds?apiKey=${API_KEY}&bookmakers=draftkings&markets=${prop}&oddsFormat=american`
+    return `https://api.the-odds-api.com/v4/sports/basketball_nba/events/${id}/odds?apiKey=${process.env.API_KEY}&bookmakers=draftkings&markets=${prop}&oddsFormat=american`
 }
 
 module.exports = {header, LINEUP_ENDPOINT, PTS_ENDPOINT, ADV_ENDPOINT, REB_ENDPOINT, AST_ENDPOINT, USG_ENDPOINT, GAME_ID_ENDPOINT, ODDS_ENDPOINT, PLAYTYPE_ENDPOINT}

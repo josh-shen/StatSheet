@@ -107,7 +107,7 @@ function create_table(database){
             let index = -1
 
             player_row.push(name)
-            //index = find_index(database.props.pts, name)
+            index = find_index(database.props.pts, name)
             const pts = (index === -1 ? -1 : database.props.pts[index]['point'])
             player_row.push(pts)
             player_row.push(pts - pts_stats[30])
@@ -124,7 +124,7 @@ function create_table(database){
             player_row.push(pts_stats[19].toFixed(2))
             player_row.push(adv_stats[30])
             player_row.push(usg_stats[28])
-            //index = find_index(database.props.reb, name)
+            index = find_index(database.props.reb, name)
             const reb = (index === -1 ? -1 : database.props.reb[index]['point'])
             player_row.push(reb)
             player_row.push(reb - (reb_stats[8] + reb_stats[17]).toFixed(2))
@@ -135,7 +135,7 @@ function create_table(database){
             player_row.push(((reb_stats[8] + reb_stats[17]) / reb_stats[30]).toFixed(2))
             player_row.push(reb_stats[29])
             player_row.push(usg_stats[20])
-            //index = find_index(database.props.ast, name)
+            index = find_index(database.props.ast, name)
             const ast = (index === -1 ? -1 : database.props.ast[index]['point'])
             player_row.push(ast)
             player_row.push(ast - ast_stats[10])

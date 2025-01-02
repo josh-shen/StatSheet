@@ -52,23 +52,7 @@ async function fetch_lineups() {
                 const injury = names[j].querySelector("span")
 
                 if (injury && !injury.textContent.includes('Playing')) {
-                    switch (j) { // there has to be a better way to do this
-                        case 1:
-                            teams['injury'].push(6)
-                            break
-                        case 3:
-                            teams['injury'].push(7)
-                            break
-                        case 5:
-                            teams['injury'].push(8)
-                            break
-                        case 7:
-                            teams['injury'].push(9)
-                            break
-                        case 9:
-                            teams['injury'].push(10)
-                            break
-                    }
+                    teams['injury'].push(Math.ceil(j/2) + 5)
                 }
 
                 name = (name) ? normalize_name(name.textContent) : ''

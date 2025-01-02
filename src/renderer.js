@@ -198,8 +198,7 @@ window.loaderAPI.load((event, table, database) => {
             allowHtml: true,
             sort: 'disable',
             frozenColumns: 1,
-            width: '100%',
-            height: '100%'
+            width: '100%'
         }
         table.draw(data, options);
     }
