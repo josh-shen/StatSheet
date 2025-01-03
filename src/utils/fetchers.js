@@ -18,8 +18,8 @@ async function fetch_lineups() {
             for (let j = 0; j < headers.length; j++) {
                 if (headers[j].textContent.includes(" @ ")) {
                     let s = headers[j].textContent.split(" ");
-                    teams['away'] = s[32]
-                    teams['home'] = s[34].trim()
+                    teams['away'] = s[32] === 'NOR' ? 'NOP' : s[32]
+                    teams['home'] = s[34].trim() === 'NOR' ? 'NOP' : s[34].trim()
 
                     let lines = headers[j].querySelector("small")
                     if (!lines) {

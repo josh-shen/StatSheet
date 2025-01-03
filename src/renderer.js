@@ -218,12 +218,12 @@ window.loaderAPI.load((event, data_table, database) => {
             if (cell.cellIndex === 1 || cell.cellIndex === 15 || cell.cellIndex === 24) {
                 cell.contentEditable = true // allow edit to input alternate or missing lines
                 // update projection values and formatting
-                cell.addEventListener('blur', update_cells)
+                cell.addEventListener('blur', update_cell)
 
                 console.log(cell.innerHTML, row.rowIndex, cell.cellIndex);
             }
         }
-        function update_cells(sender){
+        function update_cell(sender){
             const row = sender.target.parentNode.rowIndex - 1
             let color
             if (sender.target.cellIndex === 1) {
@@ -339,16 +339,15 @@ window.loaderAPI.load((event, data_table, database) => {
         let opponent
         for (const match of database.lineups) {
             const player_index = match.indexOf(event.target["value"])
-            if (player_index < 5) {
+            if (player_index !== -1 && player_index < 5) {
                 opponent = match[5]['home']
-            } else if (player_index > 5) {
+                break
+            } else if (player_index !== -1 && player_index > 5) {
                 opponent = match[5]['away']
-            } else {
-                continue
+                break
             }
-            break
         }
-
+        console.log(opponent)
         // set variable slice colors
         const percentile = {}
         for (const [key, value] of Object.entries(database.play_types_defense)) {

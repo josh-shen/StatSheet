@@ -42,7 +42,7 @@ function filter(stats, name) {
 function find_index(n, name) {
     const index = n.findIndex(element => element.description === name)
 
-    if (index) {return index}
+    if (index) return index
     return -1
 }
 
