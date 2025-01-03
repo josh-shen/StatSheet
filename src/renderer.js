@@ -39,160 +39,163 @@ function blend(value, low, mid, floor, scale) {
     }
 }
 
-window.loaderAPI.load((event, table, database) => {
+function format_cells(data, database) {
+    const r = data.getNumberOfRows()
+    let color
+
+    for (let i = 0; i < r / 12; i++) {
+        // points total
+        data.setValue(5 + (i * 12), 0, database.lineups[i][5]['total'])
+
+        // spread
+        if (database.lineups[i][5]['spread'] <= 3) {
+            color = green
+        } else if (database.lineups[i][5]['spread'] >= 3.5 && database.lineups[i][5]['spread'] <= 6) {
+            color = yellow
+        } else if (database.lineups[i][5]['spread'] >= 6.5 && database.lineups[i][5]['spread'] <= 9) {
+            color = orange
+        } else {
+            color = red
+        }
+        if (database.lineups[i][5]['favorite'] === database.lineups[i][5]['away']) {
+            for (let j = 0; j < 5; j++) {
+                const r = j + (i * 12)
+                data.setProperty(r, 0, 'style', `background-color: ${color}; text-align: right`)
+            }
+            for (let j = 5; j < 11; j++) {
+                const r = j + (i * 12)
+                const light_color = RGB_Linear_Shade(0.5, color)
+                data.setProperty(r, 0, 'style', `background-color: ${light_color}; text-align: right`)
+            }
+        } else {
+            for (let j = 0; j < 6; j++) {
+                const r = j + (i * 12)
+                const light_color = RGB_Linear_Shade(0.5, color)
+                data.setProperty(r, 0, 'style', `background-color: ${light_color}; text-align: right`)
+            }
+            for (let j = 6; j < 11; j++) {
+                const r = j + (i * 12)
+                data.setProperty(r, 0, 'style', `background-color: ${color}; text-align: right`)
+            }
+        }
+
+        // injury indicator
+        for (const index of database.lineups[i][5]['injury']) {
+            const r = index + (i * 12)
+            let cell = data.getValue(r, 0)
+            data.setValue(r, 0, cell + ' 🩼')
+        }
+
+        // rebounding colors
+        for (const c of [20, 21, 22]) {
+            let min = 100
+            let max = 0
+            for (let j = 0; j < 11; j++) {
+                const r = j + (i * 12)
+
+                if (!data.getValue(r, c)) continue
+
+                min = Math.min(min, data.getValue(r, c))
+                max = Math.max(max, data.getValue(r, c))
+            }
+            const mid = (max + min) / 2
+            for (let j = 0; j < 11; j++) {
+                const r = j + (i * 12)
+                const color = shade(data.getValue(r, c), mid, max, 1/(max-mid))
+                data.setProperty(r, c, 'style', `background-color: ${color};`)
+            }
+        }
+    }
+
+    // stats colors
+    for (let i = 0; i < r - 1; ++i) {
+        // min/game 18 - 28 - 38
+        color = blend(data.getValue(i, 4), 18, 28, 10, 0.1)
+        data.setProperty(i, 4, 'style', `background-color: ${color};`)
+
+        // fg% 0.34 - 0.44 - 0.54
+        color = blend(data.getValue(i, 8), 0.34, 0.44, 0.1, 10)
+        data.setProperty(i, 8, 'style', `background-color: ${color};`)
+
+        // 3p% 0.23 - 0.33 - 0.43
+        color = blend(data.getValue(i, 10), 0.23, 0.33, 0.1, 10)
+        data.setProperty(i, 10, 'style', `background-color: ${color};`)
+
+        // ft% 0.71 - 0.81 - 0.91
+        color = blend(data.getValue(i, 12), 0.71, 0.81, 0.1, 10)
+        data.setProperty(i, 12, 'style', `background-color: ${color};`)
+
+        // usg% 0.1 - 0.2 - 0.3
+        color = blend(data.getValue(i, 13) , 0.1, 0.2, 0.1, 10)
+        data.setProperty(i, 13, 'style', `background-color: ${color};`)
+
+        // %pts 0.1 - 0.2 - 0.3
+        color = blend(data.getValue(i, 14) , 0.1, 0.2, 0.1, 10)
+        data.setProperty(i, 14, 'style', `background-color: ${color};`)
+
+        // %reb 0.1 - 0.2 - 0.3
+        color = blend(data.getValue(i, 23) , 0.1, 0.2, 0.1, 10)
+        data.setProperty(i, 23, 'style', `background-color: ${color};`)
+
+        // passes 20 - 40 - 60 (r, c=24)
+        color = blend(data.getValue(i, 28), 20, 40, 20, 0.05)
+        data.setProperty(i, 28, 'style', `background-color: ${color};`)
+
+        // ast/pass 0.03 - 0.11 - 0.19
+        color = blend(data.getValue(i, 29), 0.03, 0.11, 0.08, 12.5)
+        data.setProperty(i, 29, 'style', `background-color: ${color};`)
+
+        // %pts 0.1 - 0.2 - 0.3
+        color = blend(data.getValue(i, 30) , 0.1, 0.2, 0.1, 10)
+        data.setProperty(i, 30, 'style', `background-color: ${color};`)
+
+        // cover -1 points
+        if (data.getValue(i, 1) === -1) {
+            data.setProperty(i, 1, 'style', `background-color: ${cover}; color: ${cover}`)
+            data.setProperty(i, 2, 'style', `background-color: ${cover}; color: ${cover}`)
+            data.setProperty(i, 3, 'style', `background-color: ${cover}; color: ${cover}`)
+        } else {
+            // line points average difference
+            color = shade(data.getValue(i, 2) * -1, 0, 3, 0.33)
+            data.setProperty(i, 2, 'style', `background-color: ${color};`)
+
+            // line projected difference
+            color = shade(data.getValue(i, 3) * -1, 0, 3, 0.33)
+            data.setProperty(i, 3, 'style', `background-color: ${color};`)
+        }
+        // cover -1 rebounds
+        if (data.getValue(i, 15) === -1) {
+            data.setProperty(i, 15, 'style', `background-color: ${cover}; color: ${cover}`)
+            data.setProperty(i, 16, 'style', `background-color: ${cover}; color: ${cover}`)
+        } else {
+            // line rebounds average difference
+            color = shade(data.getValue(i, 16) * -1, 0, 3, 0.33)
+            data.setProperty(i, 16, 'style', `background-color: ${color};`)
+        }
+        // cover -1 assists
+        if (data.getValue(i, 24) === -1) {
+            data.setProperty(i, 24, 'style', `background-color: ${cover}; color: ${cover}`)
+            data.setProperty(i, 25, 'style', `background-color: ${cover}; color: ${cover}`)
+        } else {
+            // line assists average difference
+            color = shade(data.getValue(i, 25) * -1, 0, 3, 0.33)
+            data.setProperty(i, 25, 'style', `background-color: ${color};`)
+        }
+    }
+}
+
+window.loaderAPI.load((event, data_table, database) => {
     // create data grid
-    const t = table
     google.charts.load('current', {'packages':['table']});
     google.charts.setOnLoadCallback(drawTable);
 
     function drawTable() {
-        const data = new google.visualization.arrayToDataTable(t, false);
+        const data = new google.visualization.arrayToDataTable(data_table, false);
 
-        // create formatting styles
-        const r = data.getNumberOfRows()
-        let color
-
-        for (let i = 0; i < r / 12; i++) {
-            // points total
-            data.setValue(5 + (i * 12), 0, database.lineups[i][5]['total'])
-
-            // spread
-            if (database.lineups[i][5]['spread'] <= 3) {
-                color = green
-            } else if (database.lineups[i][5]['spread'] >= 3.5 && database.lineups[i][5]['spread'] <= 6) {
-                color = yellow
-            } else if (database.lineups[i][5]['spread'] >= 6.5 && database.lineups[i][5]['spread'] <= 9) {
-                color = orange
-            } else {
-                color = red
-            }
-            if (database.lineups[i][5]['favorite'] === database.lineups[i][5]['away']) {
-                for (let j = 0; j < 5; j++) {
-                    const r = j + (i * 12)
-                    data.setProperty(r, 0, 'style', `background-color: ${color}; text-align: right`)
-                }
-                for (let j = 5; j < 11; j++) {
-                    const r = j + (i * 12)
-                    const light_color = RGB_Linear_Shade(0.5, color)
-                    data.setProperty(r, 0, 'style', `background-color: ${light_color}; text-align: right`)
-                }
-            } else {
-                for (let j = 0; j < 6; j++) {
-                    const r = j + (i * 12)
-                    const light_color = RGB_Linear_Shade(0.5, color)
-                    data.setProperty(r, 0, 'style', `background-color: ${light_color}; text-align: right`)
-                }
-                for (let j = 6; j < 11; j++) {
-                    const r = j + (i * 12)
-                    data.setProperty(r, 0, 'style', `background-color: ${color}; text-align: right`)
-                }
-            }
-
-            // injury indicator
-            for (const index of database.lineups[i][5]['injury']) {
-                const r = index + (i * 12)
-                let cell = data.getValue(r, 0)
-                data.setValue(r, 0, cell + ' 🩼')
-            }
-
-            // rebounding colors
-            for (const c of [20, 21, 22]) {
-                let min = 100
-                let max = 0
-                for (let j = 0; j < 11; j++) {
-                    const r = j + (i * 12)
-
-                    if (!data.getValue(r, c)) continue
-
-                    min = Math.min(min, data.getValue(r, c))
-                    max = Math.max(max, data.getValue(r, c))
-                }
-                const mid = (max + min) / 2
-                for (let j = 0; j < 11; j++) {
-                    const r = j + (i * 12)
-                    const color = shade(data.getValue(r, c), mid, max, 1/(max-mid))
-                    data.setProperty(r, c, 'style', `background-color: ${color};`)
-                }
-            }
-        }
-
-        // stats colors
-        for (let i = 0; i < r - 1; ++i) {
-            // min/game 18 - 28 - 38
-            color = blend(data.getValue(i, 4), 18, 28, 10, 0.1)
-            data.setProperty(i, 4, 'style', `background-color: ${color};`)
-
-            // fg% 0.34 - 0.44 - 0.54
-            color = blend(data.getValue(i, 8), 0.34, 0.44, 0.1, 10)
-            data.setProperty(i, 8, 'style', `background-color: ${color};`)
-
-            // 3p% 0.23 - 0.33 - 0.43
-            color = blend(data.getValue(i, 10), 0.23, 0.33, 0.1, 10)
-            data.setProperty(i, 10, 'style', `background-color: ${color};`)
-
-            // ft% 0.71 - 0.81 - 0.91
-            color = blend(data.getValue(i, 12), 0.71, 0.81, 0.1, 10)
-            data.setProperty(i, 12, 'style', `background-color: ${color};`)
-
-            // usg% 0.1 - 0.2 - 0.3
-            color = blend(data.getValue(i, 13) , 0.1, 0.2, 0.1, 10)
-            data.setProperty(i, 13, 'style', `background-color: ${color};`)
-
-            // %pts 0.1 - 0.2 - 0.3
-            color = blend(data.getValue(i, 14) , 0.1, 0.2, 0.1, 10)
-            data.setProperty(i, 14, 'style', `background-color: ${color};`)
-
-            // %reb 0.1 - 0.2 - 0.3
-            color = blend(data.getValue(i, 23) , 0.1, 0.2, 0.1, 10)
-            data.setProperty(i, 23, 'style', `background-color: ${color};`)
-
-            // passes 20 - 40 - 60 (r, c=24)
-            color = blend(data.getValue(i, 28), 20, 40, 20, 0.05)
-            data.setProperty(i, 28, 'style', `background-color: ${color};`)
-
-            // ast/pass 0.03 - 0.11 - 0.19
-            color = blend(data.getValue(i, 29), 0.03, 0.11, 0.08, 12.5)
-            data.setProperty(i, 29, 'style', `background-color: ${color};`)
-
-            // %pts 0.1 - 0.2 - 0.3
-            color = blend(data.getValue(i, 30) , 0.1, 0.2, 0.1, 10)
-            data.setProperty(i, 30, 'style', `background-color: ${color};`)
-
-            // cover -1
-            if (data.getValue(i, 1) === -1) {
-                data.setProperty(i, 1, 'style', `background-color: ${cover}; color: ${cover}`)
-                data.setProperty(i, 2, 'style', `background-color: ${cover}; color: ${cover}`)
-                data.setProperty(i, 3, 'style', `background-color: ${cover}; color: ${cover}`)
-            } else {
-                // line points average difference
-                color = shade(data.getValue(i, 2) * -1, 0, 3, 0.33)
-                data.setProperty(i, 2, 'style', `background-color: ${color};`)
-
-                // line projected difference
-                color = shade(data.getValue(i, 3) * -1, 0, 3, 0.33)
-                data.setProperty(i, 3, 'style', `background-color: ${color};`)
-            }
-            // cover -1
-            if (data.getValue(i, 15) === -1) {
-                data.setProperty(i, 15, 'style', `background-color: ${cover}; color: ${cover}`)
-                data.setProperty(i, 16, 'style', `background-color: ${cover}; color: ${cover}`)
-            } else {
-                // line rebounds average difference
-                color = shade(data.getValue(i, 16) * -1, 0, 3, 0.33)
-                data.setProperty(i, 16, 'style', `background-color: ${color};`)
-            }
-            // cover -1
-            if (data.getValue(i, 24) === -1) {
-                data.setProperty(i, 24, 'style', `background-color: ${cover}; color: ${cover}`)
-                data.setProperty(i, 25, 'style', `background-color: ${cover}; color: ${cover}`)
-            } else {
-                // line assists average difference
-                color = shade(data.getValue(i, 25) * -1, 0, 3, 0.33)
-                data.setProperty(i, 25, 'style', `background-color: ${color};`)
-            }
-        }
+        format_cells(data, database)
 
         const table = new google.visualization.Table(document.getElementById('table'));
+
         const options = {
             showRowNumber: false,
             allowHtml: true,
@@ -200,7 +203,62 @@ window.loaderAPI.load((event, table, database) => {
             frozenColumns: 1,
             width: '100%'
         }
+
         table.draw(data, options);
+
+        const tbody = document.querySelector('tbody');
+        tbody.addEventListener('click', e => edit_cells(e))
+
+        function edit_cells(e) {
+            const cell = e.target.closest('td')
+            if (!cell) return
+
+            const row = cell.parentElement;
+
+            if (cell.cellIndex === 1 || cell.cellIndex === 15 || cell.cellIndex === 24) {
+                cell.contentEditable = true // allow edit to input alternate or missing lines
+                // update projection values and formatting
+                cell.addEventListener('blur', update_cells)
+
+                console.log(cell.innerHTML, row.rowIndex, cell.cellIndex);
+            }
+        }
+        function update_cells(sender){
+            const row = sender.target.parentNode.rowIndex - 1
+            let color
+            if (sender.target.cellIndex === 1) {
+                data.setValue(row, 1, sender.target.innerHTML)
+                data.setValue(row, 2, sender.target.innerHTML - data.getValue(row, 5))
+                data.setValue(row, 3, sender.target.innerHTML - data.getValue(row, 6))
+
+                data.setProperty(row, 1, 'style', 'background-color: rgb(255, 255, 255);')
+
+                color = shade(data.getValue(row, 2) * -1, 0, 3, 0.33)
+                data.setProperty(row, 2, 'style', `background-color: ${color};`)
+
+                color = shade(data.getValue(row, 3) * -1, 0, 3, 0.33)
+                data.setProperty(row, 3, 'style', `background-color: ${color};`)
+            } else if (sender.target.cellIndex === 15) {
+                data.setValue(row, 15, sender.target.innerHTML)
+                data.setValue(row, 16, sender.target.innerHTML - data.getValue(row, 19))
+
+                data.setProperty(row, 15, 'style', 'background-color: rgb(255, 255, 255);')
+
+                color = shade(data.getValue(row, 16) * -1, 0, 3, 0.33)
+                data.setProperty(row, 16, 'style', `background-color: ${color};`)
+            } else if (sender.target.cellIndex === 24) {
+                data.setValue(row, 24, sender.target.innerHTML)
+                data.setValue(row, 25, sender.target.innerHTML - data.getValue(row, 26))
+
+                data.setProperty(row, 24, 'style', 'background-color: rgb(255, 255, 255);')
+
+                color = shade(data.getValue(row, 25) * -1, 0, 3, 0.33)
+                data.setProperty(row, 25, 'style', `background-color: ${color};`)
+            }
+            table.draw(data, options)
+            const tbody = document.querySelector('tbody');
+            tbody.addEventListener('click', e => edit_cells(e))
+        }
     }
 
     // select player to visualize on pie chart
@@ -236,42 +294,51 @@ window.loaderAPI.load((event, table, database) => {
 
         // set slice values
         for (const [key, value] of Object.entries(database.play_types)) {
-            for (const player of value) {
-                if (player.includes(event.target.value)) {
-                    player_team = player[4]
-                    switch (key) {
-                        case 'Isolation': dataset[0][1] = player[10]
-                            break
-                        case 'Transition': dataset[1][1] = player[10]
-                            break
-                        case 'PRBallHandler': dataset[2][1] = player[10]
-                            break
-                        case 'PRRollMan': dataset[3][1] = player[10]
-                            break
-                        case 'Postup': dataset[4][1] = player[10]
-                            break
-                        case 'Spotup': dataset[5][1] = player[10]
-                            break
-                        case 'Handoff': dataset[6][1] = player[10]
-                            break
-                        case 'Cut': dataset[7][1] = player[10]
-                            break
-                        case 'OffScreen': dataset[8][1] = player[10]
-                            break
-                        case 'OffRebound': dataset[9][1] = player[10]
-                            break
-                        case 'Misc': dataset[10][1] = player[10]
-                            break
-                    }
-                    break
+            for (const player of value) if (player.includes(event.target["value"])) {
+                player_team = player[4]
+                switch (key) {
+                    case 'Isolation':
+                        dataset[0][1] = player[10]
+                        break
+                    case 'Transition':
+                        dataset[1][1] = player[10]
+                        break
+                    case 'PRBallHandler':
+                        dataset[2][1] = player[10]
+                        break
+                    case 'PRRollMan':
+                        dataset[3][1] = player[10]
+                        break
+                    case 'Postup':
+                        dataset[4][1] = player[10]
+                        break
+                    case 'Spotup':
+                        dataset[5][1] = player[10]
+                        break
+                    case 'Handoff':
+                        dataset[6][1] = player[10]
+                        break
+                    case 'Cut':
+                        dataset[7][1] = player[10]
+                        break
+                    case 'OffScreen':
+                        dataset[8][1] = player[10]
+                        break
+                    case 'OffRebound':
+                        dataset[9][1] = player[10]
+                        break
+                    case 'Misc':
+                        dataset[10][1] = player[10]
+                        break
                 }
+                break
             }
         }
 
         // find defending team
         let opponent
         for (const match of database.lineups) {
-            const player_index = match.indexOf(event.target.value)
+            const player_index = match.indexOf(event.target["value"])
             if (player_index < 5) {
                 opponent = match[5]['home']
             } else if (player_index > 5) {
@@ -285,19 +352,17 @@ window.loaderAPI.load((event, table, database) => {
         // set variable slice colors
         const percentile = {}
         for (const [key, value] of Object.entries(database.play_types_defense)) {
-            for (const team of value) {
-                if (team[2] === opponent) {
-                    if (team[6] > 0.5) {
-                        const p = 1 - (team[6] - 0.5) * 2
-                        percentile[key] = RGB_Linear_Shade(p, red)
-                    } else {
-                        const p = 1 - (team[6] * 2)
-                        percentile[key] = RGB_Linear_Shade(p, green)
-                    }
+            for (const team of value) if (team[2] === opponent) {
+                if (team[6] > 0.5) {
+                    const p = 1 - (team[6] - 0.5) * 2
+                    percentile[key] = RGB_Linear_Shade(p, red)
+                } else {
+                    const p = 1 - (team[6] * 2)
+                    percentile[key] = RGB_Linear_Shade(p, green)
                 }
             }
         }
-        console.log(percentile)
+
         google.charts.load('current', {'packages':['corechart']});
         google.charts.setOnLoadCallback(drawChart);
 

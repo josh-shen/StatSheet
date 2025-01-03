@@ -35,11 +35,11 @@ async function createWindow() {
         play_types_defense: await fetch_play_types('T', 'defensive')
     }
 
-    const table = create_table(database)
+    const datatable = create_table(database)
 
     win.loadFile(join(__dirname, './index.html'))
         .then(() => {
-            win.webContents.send('load', table, database)
+            win.webContents.send('load', datatable, database)
         })
         .then(() => {
             win.show()
@@ -47,5 +47,5 @@ async function createWindow() {
 }
 
 app.whenReady().then(() =>{
-    createWindow()
+    createWindow().then()
 })
