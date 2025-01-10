@@ -4,8 +4,19 @@ html, body {
 body {
     margin: 0;
 }
+div::-webkit-scrollbar {
+    display: none;
+}
 #table {
     height: 60%;
+}
+.google-visualization-table .gradient {
+    background-image: none !important;
+    background-color: #C9DAF8;
+    border: none !important;
+}
+.tableCell {
+    border: none !important;
 }
 #piechart {
     width: 500px;

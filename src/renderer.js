@@ -199,6 +199,7 @@ window.loaderAPI.load((event, data_table, database) => {
         const options = {
             showRowNumber: false,
             allowHtml: true,
+            cssClassNames: {tableCell: 'tableCell'},
             sort: 'disable',
             frozenColumns: 1,
             width: '100%'
