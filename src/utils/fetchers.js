@@ -49,10 +49,10 @@ async function fetch_lineups() {
 
             for (let j = 0; j < names.length; j++) {
                 let name = names[j].querySelector("a")
-                const injury = names[j].querySelector("span")
+                const injury = names[j].querySelector("span[class='status-square']")
 
                 if (injury && !injury.textContent.includes('Playing')) {
-                    teams['injury'].push(Math.ceil(j/2) + 5)
+                    teams['injury'].push(j % 2 === 0 ? j / 2 : Math.ceil(j/2) + 5)
                 }
 
                 name = (name) ? normalize_name(name.textContent) : ''
