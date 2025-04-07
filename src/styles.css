@@ -12,11 +12,14 @@ div::-webkit-scrollbar {
 }
 .google-visualization-table .gradient {
     background-image: none !important;
-    background-color: #C9DAF8;
+    background-color: #FFF;
     border: none !important;
 }
 .tableCell {
     border: none !important;
+}
+.google-visualization-table-tr-sel {
+
 }
 #piechart {
     width: 500px;

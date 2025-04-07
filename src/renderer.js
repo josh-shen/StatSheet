@@ -43,6 +43,7 @@ function format_cells(data, database) {
     const r = data.getNumberOfRows()
     let color
 
+    // individual game colors
     for (let i = 0; i < r / 12; i++) {
         // points total
         data.setValue(5 + (i * 12), 0, database.lineups[i][5]['total'])
@@ -107,7 +108,7 @@ function format_cells(data, database) {
         }
     }
 
-    // stats colors
+    // full stats colors
     for (let i = 0; i < r - 1; ++i) {
         // min/game 18 - 28 - 38
         color = blend(data.getValue(i, 4), 18, 28, 10, 0.1)
@@ -201,13 +202,17 @@ window.loaderAPI.load((event, data_table, database) => {
             allowHtml: true,
             cssClassNames: {tableCell: 'tableCell'},
             sort: 'disable',
-            frozenColumns: 1,
             width: '100%'
         }
 
         table.draw(data, options);
-
         const tbody = document.querySelector('tbody');
+
+        // remove last (empty) row
+        const rows = tbody.querySelectorAll('tr');
+        rows[rows.length - 1].remove();
+
+        // allow cell editing
         tbody.addEventListener('click', e => edit_cells(e))
 
         function edit_cells(e) {
@@ -225,6 +230,10 @@ window.loaderAPI.load((event, data_table, database) => {
             }
         }
         function update_cell(sender){
+            // Store current scroll state
+            const container = document.querySelector('.google-visualization-table > div');
+            const scrollState = container.scrollTop
+
             const row = sender.target.parentNode.rowIndex - 1
             let color
             if (sender.target.cellIndex === 1) {
@@ -257,6 +266,11 @@ window.loaderAPI.load((event, data_table, database) => {
                 data.setProperty(row, 25, 'style', `background-color: ${color};`)
             }
             table.draw(data, options)
+
+            // the table has been redrawn, so go back to the saved scrolled position
+            const newContainer = document.querySelector('.google-visualization-table > div')
+            newContainer.scrollTop = scrollState
+
             const tbody = document.querySelector('tbody');
             tbody.addEventListener('click', e => edit_cells(e))
         }
@@ -264,7 +278,6 @@ window.loaderAPI.load((event, data_table, database) => {
 
     // select player to visualize on pie chart
     const select = document.getElementById('select_player');
-
     for (const group of database.lineups) {
         for (const name of group) {
             if (typeof name !== 'string') continue
@@ -390,4 +403,5 @@ window.loaderAPI.load((event, data_table, database) => {
             chart.draw(data, options);
         }
     })
+
 })

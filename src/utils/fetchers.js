@@ -1,7 +1,7 @@
 const axios = require('axios')
 const jsdom = require('jsdom').JSDOM
 const {header, LINEUP_ENDPOINT, GAME_ID_ENDPOINT, ODDS_ENDPOINT, PLAYTYPE_ENDPOINT} = require("./endpoints.js")
-const {normalize_name} = require('./utils.js')
+const {normalize_name, normalize_team} = require('./utils.js')
 
 async function fetch_lineups() {
     const lineups = []
@@ -18,8 +18,8 @@ async function fetch_lineups() {
             for (let j = 0; j < headers.length; j++) {
                 if (headers[j].textContent.includes(" @ ")) {
                     let s = headers[j].textContent.split(" ");
-                    teams['away'] = s[32] === 'NOR' ? 'NOP' : s[32]
-                    teams['home'] = s[34].trim() === 'NOR' ? 'NOP' : s[34].trim()
+                    teams['away'] = normalize_team(s[32])
+                    teams['home'] = normalize_team(s[34].trim())
 
                     let lines = headers[j].querySelector("small")
                     if (!lines) {
