@@ -18,8 +18,50 @@ div::-webkit-scrollbar {
 .tableCell {
     border: none !important;
 }
-.google-visualization-table-tr-sel {
+.injuryAlert {
+    color: darkorange;
+    font-size: 8pt;
+    font-weight: bold;
+}
+[data-tooltip] {
+    display: inline-block;
+    position: relative;
+    padding: 4px;
+}
 
+[data-tooltip]:before {
+    content: attr(data-tooltip);
+    display: none;
+    position: absolute;
+    background: #000;
+    color: #FFF;
+    font-weight: normal;
+    padding: 4px 8px;
+    text-align: center;
+    border-radius: 4px;
+    top: 50%;
+    -ms-transform: translateY(-50%);
+    transform: translateY(-50%);
+    left: 100%;
+    margin-left: 6px;
+    white-space: nowrap;
+}
+
+[data-tooltip]:after {
+    left: 100%;
+    border-width: 6px 6px 6px 0;
+    border-right-color: #000;
+}
+[data-tooltip]:hover:before,
+[data-tooltip]:hover:after {
+    display: block;
+    z-index: 50;
+}
+.total {
+
+}
+#editing {
+    background-color: #FFF !important;
 }
 #piechart {
     width: 500px;

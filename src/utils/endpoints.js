@@ -8,7 +8,7 @@ const header = {
     'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/121.0.0.0 Safari/537.36'
 }
 
-const LINEUP_ENDPOINT = 'https://basketballmonster.com/nbalineups.aspx'
+const LINEUP_ENDPOINT = process.env.LINEUP_ENDPOINT
 
 function PTS_ENDPOINT(date_from='', season, type='Regular%20Season') {
     return `https://stats.nba.com/stats/leaguedashplayerstats?College=&Conference=&Country=&DateFrom=${date_from}&DateTo=&Division=&DraftPick=&DraftYear=&GameScope=&GameSegment=&Height=&ISTRound=&LastNGames=0&LeagueID=00&Location=&MeasureType=Base&Month=0&OpponentTeamID=0&Outcome=&PORound=0&PaceAdjust=N&PerMode=PerGame&Period=0&PlayerExperience=&PlayerPosition=&PlusMinus=N&Rank=N&Season=${season}&SeasonSegment=&SeasonType=${type}&ShotClockRange=&StarterBench=&TeamID=0&VsConference=&VsDivision=&Weight=`

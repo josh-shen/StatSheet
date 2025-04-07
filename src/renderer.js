@@ -45,9 +45,12 @@ function format_cells(data, database) {
 
     // individual game colors
     for (let i = 0; i < r / 12; i++) {
-        // points total
-        data.setValue(5 + (i * 12), 0, database.lineups[i][5]['total'])
+        // spread, points total
+        const favorite = database.lineups[i][5]['favorite']
+        const spread = database.lineups[i][5]['spread']
+        const total = database.lineups[i][5]['total']
 
+        data.setValue(5 + (i * 12), 0, `<span>${favorite} -${spread}</span><span class="total">+/-${total}</span>`)
         // spread
         if (database.lineups[i][5]['spread'] <= 3) {
             color = green
@@ -58,33 +61,16 @@ function format_cells(data, database) {
         } else {
             color = red
         }
-        if (database.lineups[i][5]['favorite'] === database.lineups[i][5]['away']) {
-            for (let j = 0; j < 5; j++) {
-                const r = j + (i * 12)
-                data.setProperty(r, 0, 'style', `background-color: ${color}; text-align: right`)
-            }
-            for (let j = 5; j < 11; j++) {
-                const r = j + (i * 12)
-                const light_color = RGB_Linear_Shade(0.5, color)
-                data.setProperty(r, 0, 'style', `background-color: ${light_color}; text-align: right`)
-            }
-        } else {
-            for (let j = 0; j < 6; j++) {
-                const r = j + (i * 12)
-                const light_color = RGB_Linear_Shade(0.5, color)
-                data.setProperty(r, 0, 'style', `background-color: ${light_color}; text-align: right`)
-            }
-            for (let j = 6; j < 11; j++) {
-                const r = j + (i * 12)
-                data.setProperty(r, 0, 'style', `background-color: ${color}; text-align: right`)
-            }
-        }
+        data.setProperty(5 + (i * 12), 0, 'style', `background-color: ${color};`)
 
         // injury indicator
-        for (const index of database.lineups[i][5]['injury']) {
-            const r = index + (i * 12)
+        for (const obj of database.lineups[i][5]['injury']) {
+            const key = Object.keys(obj)
+            let val = obj[key[0]]
+            val = val.substring(0, val.lastIndexOf(' '))
+            const r = Number(key[0]) + (i * 12)
             let cell = data.getValue(r, 0)
-            data.setValue(r, 0, cell + ' 🩼')
+            data.setValue(r, 0, cell + `<span class="injuryAlert" data-tooltip="${val}"> GTD</span>`)
         }
 
         // rebounding colors
@@ -219,18 +205,15 @@ window.loaderAPI.load((event, data_table, database) => {
             const cell = e.target.closest('td')
             if (!cell) return
 
-            const row = cell.parentElement;
-
             if (cell.cellIndex === 1 || cell.cellIndex === 15 || cell.cellIndex === 24) {
                 cell.contentEditable = true // allow edit to input alternate or missing lines
                 // update projection values and formatting
                 cell.addEventListener('blur', update_cell)
-
-                console.log(cell.innerHTML, row.rowIndex, cell.cellIndex);
+                cell.id = 'editing'
             }
         }
         function update_cell(sender){
-            // Store current scroll state
+            // store current scroll state
             const container = document.querySelector('.google-visualization-table > div');
             const scrollState = container.scrollTop
 
@@ -241,30 +224,47 @@ window.loaderAPI.load((event, data_table, database) => {
                 data.setValue(row, 2, sender.target.innerHTML - data.getValue(row, 5))
                 data.setValue(row, 3, sender.target.innerHTML - data.getValue(row, 6))
 
-                data.setProperty(row, 1, 'style', 'background-color: rgb(255, 255, 255);')
+                if (sender.target.innerHTML === '-1') {
+                    data.setProperty(row, 1, 'style', `background-color: ${cover}; color: ${cover};`)
+                    data.setProperty(row, 2, 'style', `background-color: ${cover}; color: ${cover};`)
+                    data.setProperty(row, 3, 'style', `background-color: ${cover}; color: ${cover};`)
+                } else {
+                    data.setProperty(row, 1, 'style', 'background-color: rgb(255, 255, 255);')
 
-                color = shade(data.getValue(row, 2) * -1, 0, 3, 0.33)
-                data.setProperty(row, 2, 'style', `background-color: ${color};`)
+                    color = shade(data.getValue(row, 2) * -1, 0, 3, 0.33)
+                    data.setProperty(row, 2, 'style', `background-color: ${color};`)
 
-                color = shade(data.getValue(row, 3) * -1, 0, 3, 0.33)
-                data.setProperty(row, 3, 'style', `background-color: ${color};`)
+                    color = shade(data.getValue(row, 3) * -1, 0, 3, 0.33)
+                    data.setProperty(row, 3, 'style', `background-color: ${color};`)
+                }
             } else if (sender.target.cellIndex === 15) {
                 data.setValue(row, 15, sender.target.innerHTML)
                 data.setValue(row, 16, sender.target.innerHTML - data.getValue(row, 19))
 
-                data.setProperty(row, 15, 'style', 'background-color: rgb(255, 255, 255);')
+                if (sender.target.innerHTML === '-1') {
+                    data.setProperty(row, 15, 'style', `background-color: ${cover}; color: ${cover};`)
+                    data.setProperty(row, 16, 'style', `background-color: ${cover}; color: ${cover};`)
+                } else {
+                    data.setProperty(row, 15, 'style', 'background-color: rgb(255, 255, 255);')
 
-                color = shade(data.getValue(row, 16) * -1, 0, 3, 0.33)
-                data.setProperty(row, 16, 'style', `background-color: ${color};`)
+                    color = shade(data.getValue(row, 16) * -1, 0, 3, 0.33)
+                    data.setProperty(row, 16, 'style', `background-color: ${color};`)
+                }
             } else if (sender.target.cellIndex === 24) {
                 data.setValue(row, 24, sender.target.innerHTML)
                 data.setValue(row, 25, sender.target.innerHTML - data.getValue(row, 26))
 
-                data.setProperty(row, 24, 'style', 'background-color: rgb(255, 255, 255);')
+                if (sender.target.innerHTML === '-1') {
+                    data.setProperty(row, 24, 'style', `background-color: ${cover}; color: ${cover};`)
+                    data.setProperty(row, 25, 'style', `background-color: ${cover}; color: ${cover};`)
+                } else {
+                    data.setProperty(row, 24, 'style', 'background-color: rgb(255, 255, 255);')
 
-                color = shade(data.getValue(row, 25) * -1, 0, 3, 0.33)
-                data.setProperty(row, 25, 'style', `background-color: ${color};`)
+                    color = shade(data.getValue(row, 25) * -1, 0, 3, 0.33)
+                    data.setProperty(row, 25, 'style', `background-color: ${color};`)
+                }
             }
+
             table.draw(data, options)
 
             // the table has been redrawn, so go back to the saved scrolled position
