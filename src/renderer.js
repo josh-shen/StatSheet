@@ -116,7 +116,7 @@ function format_cells(data, database) {
     }
 
     // full stats colors
-    for (let i = 0; i < r - 1; ++i) {
+    for (let i = 0; i < r; ++i) {
         // min/game 18 - 28 - 38
         color = blend(data.getValue(i, 4), 18, 28, 10, 0.1)
         data.setProperty(i, 4, 'style', `background-color: ${color};`)
@@ -192,311 +192,328 @@ function format_cells(data, database) {
     }
 }
 
-window.loaderAPI.load((event, data_table, database) => {
-    // create data grid
-    google.charts.load('current', {'packages':['table']});
-    google.charts.setOnLoadCallback(drawTable);
-    function drawTable() {
-        const data = new google.visualization.arrayToDataTable(data_table, false);
+function drawTable(datatable, database, options, table_id) {
+    const data = new google.visualization.arrayToDataTable(datatable);
 
-        format_cells(data, database)
+    format_cells(data, database)
 
-        const table = new google.visualization.Table(document.getElementById('table'));
+    const table = new google.visualization.Table(document.getElementById(table_id));
 
-        const options = {
-            showRowNumber: false,
-            allowHtml: true,
-            cssClassNames: {tableCell: 'tableCell', headerCell: 'headerCell'},
-            sort: 'disable',
-            width: '100%'
+    table.draw(data, options);
+
+    const tbody = document.querySelector('tbody');
+
+    // allow cell editing
+    tbody.addEventListener('click', e => edit_cells(e, data, table, options))
+}
+
+function edit_cells(e, data, table, options) {
+    const cell = e.target.closest('td')
+    if (!cell) return
+
+    const row = cell.parentElement;
+
+    // allow cell editing only on player rows
+    if (cell.cellIndex === 1 || cell.cellIndex === 15 || cell.cellIndex === 24) {
+        if ((row.rowIndex - 6) % 6 !== 0) {
+            cell.contentEditable = true
+            // update projection values and formatting
+            cell.addEventListener('blur', function(e) { update_cell(e, data, table, options) })
         }
+    }
+}
 
-        table.draw(data, options);
+function update_cell(sender, data, table, options){
+    // store current scroll state
+    const container = document.querySelector('.google-visualization-table > div');
+    const scrollState = container.scrollTop
 
-        // create custom header
-        const thead = document.querySelector('.google-visualization-table-tr-head')
-        const header_cells = thead.childNodes;
-        const header = document.querySelector('#header');
-        for (const node of header_cells) {
-            const header_cell = document.createElement('div');
-            if (!node.textContent.includes('-')) {
-                header_cell.textContent = node.textContent;
-            } else {
-                const logo = document.createElement('img');
-                logo.id = 'logo'
-                logo.src = 'assets/nba.png'
-                header_cell.id = 'logo_container';
-                header_cell.appendChild(logo);
-            }
-            header_cell.style.width = node.getBoundingClientRect().width + 'px';
-            header_cell.style.height = '28px';
-            header.appendChild(header_cell);
+    const row = sender.target.parentNode.rowIndex - 1
+    let color
+    if (sender.target.cellIndex === 1) {
+        data.setValue(row, 1, sender.target.innerHTML)
+        data.setValue(row, 2, sender.target.innerHTML - data.getValue(row, 5))
+        data.setValue(row, 3, sender.target.innerHTML - data.getValue(row, 6))
+        if (sender.target.innerHTML === '-1') {
+            data.setProperty(row, 1, 'style', `background-color: ${cover}; color: ${cover};`)
+            data.setProperty(row, 2, 'style', `background-color: ${cover}; color: ${cover};`)
+            data.setProperty(row, 3, 'style', `background-color: ${cover}; color: ${cover};`)
+        } else {
+            data.setProperty(row, 1, 'style', 'background-color: rgb(255, 255, 255);')
+
+            color = shade(data.getValue(row, 2) * -1, 0, 3, 0.33)
+            data.setProperty(row, 2, 'style', `background-color: ${color};`)
+
+            color = shade(data.getValue(row, 3) * -1, 0, 3, 0.33)
+            data.setProperty(row, 3, 'style', `background-color: ${color};`)
         }
+    } else if (sender.target.cellIndex === 15) {
+        data.setValue(row, 15, sender.target.innerHTML)
+        data.setValue(row, 16, sender.target.innerHTML - data.getValue(row, 19))
 
-        const tbody = document.querySelector('tbody');
+        if (sender.target.innerHTML === '-1') {
+            data.setProperty(row, 15, 'style', `background-color: ${cover}; color: ${cover};`)
+            data.setProperty(row, 16, 'style', `background-color: ${cover}; color: ${cover};`)
+        } else {
+            data.setProperty(row, 15, 'style', 'background-color: rgb(255, 255, 255);')
 
-        // remove last (empty) row
-        const rows = tbody.querySelectorAll('tr');
-        rows[rows.length - 1].remove();
-
-        // allow cell editing
-        tbody.addEventListener('click', e => edit_cells(e))
-
-        function edit_cells(e) {
-            const cell = e.target.closest('td')
-            if (!cell) return
-
-            const row = cell.parentElement;
-
-            // allow cell editing only on player rows
-            if (cell.cellIndex === 1 || cell.cellIndex === 15 || cell.cellIndex === 24) {
-                if ((row.rowIndex - 6) % 6 !== 0) {
-                    cell.contentEditable = true
-                    // update projection values and formatting
-                    cell.addEventListener('blur', update_cell)
-                }
-            }
+            color = shade(data.getValue(row, 16) * -1, 0, 3, 0.33)
+            data.setProperty(row, 16, 'style', `background-color: ${color};`)
         }
-        function update_cell(sender){
-            // store current scroll state
-            const container = document.querySelector('.google-visualization-table > div');
-            const scrollState = container.scrollTop
+    } else if (sender.target.cellIndex === 24) {
+        data.setValue(row, 24, sender.target.innerHTML)
+        data.setValue(row, 25, sender.target.innerHTML - data.getValue(row, 26))
 
-            const row = sender.target.parentNode.rowIndex - 1
-            let color
-            if (sender.target.cellIndex === 1) {
-                data.setValue(row, 1, sender.target.innerHTML)
-                data.setValue(row, 2, sender.target.innerHTML - data.getValue(row, 5))
-                data.setValue(row, 3, sender.target.innerHTML - data.getValue(row, 6))
+        if (sender.target.innerHTML === '-1') {
+            data.setProperty(row, 24, 'style', `background-color: ${cover}; color: ${cover};`)
+            data.setProperty(row, 25, 'style', `background-color: ${cover}; color: ${cover};`)
+        } else {
+            data.setProperty(row, 24, 'style', 'background-color: rgb(255, 255, 255);')
 
-                if (sender.target.innerHTML === '-1') {
-                    data.setProperty(row, 1, 'style', `background-color: ${cover}; color: ${cover};`)
-                    data.setProperty(row, 2, 'style', `background-color: ${cover}; color: ${cover};`)
-                    data.setProperty(row, 3, 'style', `background-color: ${cover}; color: ${cover};`)
-                } else {
-                    data.setProperty(row, 1, 'style', 'background-color: rgb(255, 255, 255);')
-
-                    color = shade(data.getValue(row, 2) * -1, 0, 3, 0.33)
-                    data.setProperty(row, 2, 'style', `background-color: ${color};`)
-
-                    color = shade(data.getValue(row, 3) * -1, 0, 3, 0.33)
-                    data.setProperty(row, 3, 'style', `background-color: ${color};`)
-                }
-            } else if (sender.target.cellIndex === 15) {
-                data.setValue(row, 15, sender.target.innerHTML)
-                data.setValue(row, 16, sender.target.innerHTML - data.getValue(row, 19))
-
-                if (sender.target.innerHTML === '-1') {
-                    data.setProperty(row, 15, 'style', `background-color: ${cover}; color: ${cover};`)
-                    data.setProperty(row, 16, 'style', `background-color: ${cover}; color: ${cover};`)
-                } else {
-                    data.setProperty(row, 15, 'style', 'background-color: rgb(255, 255, 255);')
-
-                    color = shade(data.getValue(row, 16) * -1, 0, 3, 0.33)
-                    data.setProperty(row, 16, 'style', `background-color: ${color};`)
-                }
-            } else if (sender.target.cellIndex === 24) {
-                data.setValue(row, 24, sender.target.innerHTML)
-                data.setValue(row, 25, sender.target.innerHTML - data.getValue(row, 26))
-
-                if (sender.target.innerHTML === '-1') {
-                    data.setProperty(row, 24, 'style', `background-color: ${cover}; color: ${cover};`)
-                    data.setProperty(row, 25, 'style', `background-color: ${cover}; color: ${cover};`)
-                } else {
-                    data.setProperty(row, 24, 'style', 'background-color: rgb(255, 255, 255);')
-
-                    color = shade(data.getValue(row, 25) * -1, 0, 3, 0.33)
-                    data.setProperty(row, 25, 'style', `background-color: ${color};`)
-                }
-            }
-
-            table.draw(data, options)
-
-            // the table has been redrawn, so go back to the saved scrolled position
-            const newContainer = document.querySelector('.google-visualization-table > div')
-            newContainer.scrollTop = scrollState
-
-            const tbody = document.querySelector('tbody');
-            tbody.addEventListener('click', e => edit_cells(e))
+            color = shade(data.getValue(row, 25) * -1, 0, 3, 0.33)
+            data.setProperty(row, 25, 'style', `background-color: ${color};`)
         }
     }
 
-    // add click event listener to table cells
-    const table = document.getElementById('table');
-    table.addEventListener('click', async e => {
-        const target = e.target
-        if (target.classList.contains('name_cell')) {
-            let text = target.textContent
-            if (text.includes('GTD')) {
-                text = text.substring(0, text.indexOf('GTD') - 1)
+    table.draw(data, options)
+
+    // the table has been redrawn, so go back to the saved scrolled position
+    const newContainer = document.querySelector('.google-visualization-table > div')
+    newContainer.scrollTop = scrollState
+
+    const tbody = document.querySelector('tbody');
+    tbody.addEventListener('click', e => edit_cells(e, data, table, options))
+}
+
+async function handleNameClick(e, database) {
+    const target = e.target
+    if (target.classList.contains('name_cell')) {
+        let text = target.textContent
+        if (text.includes('GTD')) {
+            text = text.substring(0, text.indexOf('GTD') - 1)
+        }
+        drawPieChart(text, database)
+        await drawColumnChart(text, database)
+    }
+}
+
+function drawPieChart(name, database) {
+    const dataset = [
+        ['Isolation', 0],
+        ['Transition', 0],
+        ['PRBallHandler', 0],
+        ['PRRollMan', 0],
+        ['Postup', 0],
+        ['Spotup', 0],
+        ['Handoff', 0],
+        ['Cut', 0],
+        ['OffScreen', 0],
+        ['OffRebound', 0],
+        ['Misc', 0]
+    ]
+    let player_team
+
+    // set slice values
+    for (const [key, value] of Object.entries(database.play_types)) {
+        for (const player of value) if (player.includes(name)) {
+            player_team = player[4]
+            switch (key) {
+                case 'Isolation':
+                    dataset[0][1] = player[10]
+                    break
+                case 'Transition':
+                    dataset[1][1] = player[10]
+                    break
+                case 'PRBallHandler':
+                    dataset[2][1] = player[10]
+                    break
+                case 'PRRollMan':
+                    dataset[3][1] = player[10]
+                    break
+                case 'Postup':
+                    dataset[4][1] = player[10]
+                    break
+                case 'Spotup':
+                    dataset[5][1] = player[10]
+                    break
+                case 'Handoff':
+                    dataset[6][1] = player[10]
+                    break
+                case 'Cut':
+                    dataset[7][1] = player[10]
+                    break
+                case 'OffScreen':
+                    dataset[8][1] = player[10]
+                    break
+                case 'OffRebound':
+                    dataset[9][1] = player[10]
+                    break
+                case 'Misc':
+                    dataset[10][1] = player[10]
+                    break
             }
-            createPieChart(text)
-            await createColumnChart(text)
+            break
+        }
+    }
+
+    // find defending team
+    let opponent
+    for (const match of database.lineups) {
+        const player_index = match.indexOf(name)
+        if (player_index !== -1 && player_index < 5) {
+            opponent = match[5]['home']
+            break
+        } else if (player_index !== -1 && player_index > 5) {
+            opponent = match[5]['away']
+            break
+        }
+    }
+
+    // set variable slice colors
+    const percentile = {}
+    for (const [key, value] of Object.entries(database.play_types_defense)) {
+        for (const team of value) if (team[2] === opponent) {
+            if (team[6] > 0.5) {
+                const p = 1 - (team[6] - 0.5) * 2
+                percentile[key] = RGB_Linear_Shade(p, red)
+            } else {
+                const p = 1 - (team[6] * 2)
+                percentile[key] = RGB_Linear_Shade(p, green)
+            }
+        }
+    }
+
+    const data = google.visualization.arrayToDataTable(dataset, true);
+    const options = {
+        slices: {
+            0: {color: percentile[dataset[0][0]]},
+            1: {color: percentile[dataset[1][0]]},
+            2: {color: percentile[dataset[2][0]]},
+            3: {color: percentile[dataset[3][0]]},
+            4: {color: percentile[dataset[4][0]]},
+            5: {color: percentile[dataset[5][0]]},
+            6: {color: percentile[dataset[6][0]]},
+            7: {color: percentile[dataset[7][0]]},
+            8: {color: percentile[dataset[8][0]]},
+            9: {color: percentile[dataset[9][0]]},
+            10: {color: percentile[dataset[10][0]]}
+        },
+        legend: 'none',
+        chartArea: {width: '90%', height: '90%'},
+    }
+
+    const chart = new google.visualization.PieChart(document.getElementById('piechart'));
+    chart.draw(data, options);
+}
+
+async function drawColumnChart(name, database) {
+    let team
+    for (const group of database['lineups']) {
+        if (group.includes(name)) {
+            const index = group.indexOf(name)
+            if (index < 5) {
+                team = group[5]['away']
+            } else {
+                team = group[5]['home']
+            }
+            break
+        }
+    }
+
+    const styles = getComputedStyle(document.documentElement);
+    const color = styles.getPropertyValue(`--${team.toLowerCase()}`);
+
+    let dataset = []
+    const index = database['stats']['assists'].findIndex(element => element.includes(name))
+    const id = database['stats']['assists'][index][0]
+    const response = await window.loaderAPI.makeRequest({
+        url: window.loaderAPI.player_assists_endpoint('', '2024-25', id),
+        method: 'GET',
+        headers: window.loaderAPI.header,
+    })
+    for (const n of response['resultSets'][0]['rowSet']) {
+        if (n[4] !== team || n[11] === 0) continue
+        dataset.push([n[7], n[11]])
+    }
+    dataset.sort(function(a, b) {
+        return a[1] - b[1];
+    });
+
+    const data = google.visualization.arrayToDataTable(dataset, true)
+    const options = {
+        chartArea: {width: '80%', height: '70%'},
+        legend: 'none',
+        colors: [color]
+    };
+
+    const chart = new google.visualization.ColumnChart(document.getElementById('columnchart'));
+    chart.draw(data, options)
+}
+
+window.loaderAPI.load((e, datatable, deadline_datatable, database) => {
+    google.charts.load('current', {'packages':['table']});
+    google.charts.load('current', {'packages':['corechart']});
+
+    // create data grids
+    const options = {
+        showRowNumber: false,
+        allowHtml: true,
+        cssClassNames: {tableCell: 'tableCell', /*headerCell: 'headerCell'*/},
+        sort: 'disable',
+        width: '100%',
+        height: '100%'
+    }
+    google.charts.setOnLoadCallback(function() { drawTable(datatable, database, options, 'table1') });
+    google.charts.setOnLoadCallback(function() { drawTable(deadline_datatable, database, options, 'table2') });
+
+    // add click event listener to table cells
+    const table1 = document.getElementById('table1');
+    const table2 = document.getElementById('table2');
+    table1.addEventListener('click', async function(e) { await handleNameClick(e, database) })
+    table2.addEventListener('click', async function(e) { await handleNameClick(e, database) })
+
+    // button to switch tables
+    const switch_button = document.getElementById('switch_button');
+    switch_button.addEventListener('click', function(e) {
+        const table1 = document.getElementById('table1');
+        const table2 = document.getElementById('table2');
+
+        if (table1.style.display === 'none') {
+            table1.style.setProperty('display', 'block');
+            table2.style.setProperty('display', 'none');
+        } else {
+            table1.style.setProperty('display', 'none');
+            table2.style.setProperty('display', 'block');
         }
     })
 
-    // create pie chart
-    function createPieChart(name) {
-        const dataset = [
-            ['Isolation', 0],
-            ['Transition', 0],
-            ['PRBallHandler', 0],
-            ['PRRollMan', 0],
-            ['Postup', 0],
-            ['Spotup', 0],
-            ['Handoff', 0],
-            ['Cut', 0],
-            ['OffScreen', 0],
-            ['OffRebound', 0],
-            ['Misc', 0]
-        ]
-        let player_team
-
-        // set slice values
-        for (const [key, value] of Object.entries(database.play_types)) {
-            for (const player of value) if (player.includes(name)) {
-                player_team = player[4]
-                switch (key) {
-                    case 'Isolation':
-                        dataset[0][1] = player[10]
-                        break
-                    case 'Transition':
-                        dataset[1][1] = player[10]
-                        break
-                    case 'PRBallHandler':
-                        dataset[2][1] = player[10]
-                        break
-                    case 'PRRollMan':
-                        dataset[3][1] = player[10]
-                        break
-                    case 'Postup':
-                        dataset[4][1] = player[10]
-                        break
-                    case 'Spotup':
-                        dataset[5][1] = player[10]
-                        break
-                    case 'Handoff':
-                        dataset[6][1] = player[10]
-                        break
-                    case 'Cut':
-                        dataset[7][1] = player[10]
-                        break
-                    case 'OffScreen':
-                        dataset[8][1] = player[10]
-                        break
-                    case 'OffRebound':
-                        dataset[9][1] = player[10]
-                        break
-                    case 'Misc':
-                        dataset[10][1] = player[10]
-                        break
-                }
-                break
-            }
-        }
-
-        // find defending team
-        let opponent
-        for (const match of database.lineups) {
-            const player_index = match.indexOf(name)
-            if (player_index !== -1 && player_index < 5) {
-                opponent = match[5]['home']
-                break
-            } else if (player_index !== -1 && player_index > 5) {
-                opponent = match[5]['away']
-                break
-            }
-        }
-
-        // set variable slice colors
-        const percentile = {}
-        for (const [key, value] of Object.entries(database.play_types_defense)) {
-            for (const team of value) if (team[2] === opponent) {
-                if (team[6] > 0.5) {
-                    const p = 1 - (team[6] - 0.5) * 2
-                    percentile[key] = RGB_Linear_Shade(p, red)
-                } else {
-                    const p = 1 - (team[6] * 2)
-                    percentile[key] = RGB_Linear_Shade(p, green)
-                }
-            }
-        }
-
-        google.charts.load('current', {'packages':['corechart']});
-        google.charts.setOnLoadCallback(drawPieChart);
-        function drawPieChart() {
-
-            const data = google.visualization.arrayToDataTable(dataset, true);
-            const options = {
-                slices: {
-                    0: {color: percentile[dataset[0][0]]},
-                    1: {color: percentile[dataset[1][0]]},
-                    2: {color: percentile[dataset[2][0]]},
-                    3: {color: percentile[dataset[3][0]]},
-                    4: {color: percentile[dataset[4][0]]},
-                    5: {color: percentile[dataset[5][0]]},
-                    6: {color: percentile[dataset[6][0]]},
-                    7: {color: percentile[dataset[7][0]]},
-                    8: {color: percentile[dataset[8][0]]},
-                    9: {color: percentile[dataset[9][0]]},
-                    10: {color: percentile[dataset[10][0]]}
-                },
-                legend: 'none',
-                chartArea: {width: '90%', height: '90%'},
-            }
-
-            const chart = new google.visualization.PieChart(document.getElementById('piechart'));
-            chart.draw(data, options);
-        }
-    }
-
-    // create bar chart
-    async function createColumnChart(name) {
-        let team
-        for (const group of database['lineups']) {
-            if (group.includes(name)) {
-                const index = group.indexOf(name)
-                if (index < 5) {
-                    team = group[5]['away']
-                } else {
-                    team = group[5]['home']
-                }
-                break
-            }
-        }
-
-        const styles = getComputedStyle(document.documentElement);
-        const color = styles.getPropertyValue(`--${team.toLowerCase()}`);
-
-        let dataset = []
-        const index = database['stats']['assists'].findIndex(element => element.includes(name))
-        const id = database['stats']['assists'][index][0]
-        const data = await window.loaderAPI.makeRequest({
-            url: window.loaderAPI.player_assists_endpoint('', '2024-25', id),
-            method: 'GET',
-            headers: window.loaderAPI.header,
-        })
-        for (const n of data['resultSets'][0]['rowSet']) {
-            if (n[4] !== team || n[11] === 0) continue
-            dataset.push([n[7], n[11]])
-        }
-        dataset.sort(function(a, b) {
-            return a[1] - b[1];
-        });
-
-        google.charts.load('current', {'packages': ['corechart']});
-        google.charts.setOnLoadCallback(drawColumnChart);
-
-        function drawColumnChart() {
-            const data = google.visualization.arrayToDataTable(dataset, true)
-            const options = {
-                chartArea: {width: '80%', height: '70%'},
-                legend: 'none',
-                colors: [color]
-            };
-
-            const chart = new google.visualization.ColumnChart(document.getElementById('columnchart'));
-            chart.draw(data, options)
-        }
-    }
+    //button to refresh tables
+    const refresh_button = document.getElementById('refresh_button');
+    refresh_button.addEventListener('click', async function(e) {
+        database['lineups'] = await window.loaderAPI.fetch_lineups();
+        drawTable(datatable, database, options, 'table1')
+        drawTable(deadline_datatable, database, options, 'table2')
+    })
 })
+
+/*
+    // create custom header
+    const thead = document.querySelector('.google-visualization-table-tr-head')
+    const header_cells = thead.childNodes;
+    const header = document.querySelector('#header');
+    for (const node of header_cells) {
+        const header_cell = document.createElement('div');
+        if (!node.textContent.includes('-')) {
+            header_cell.textContent = node.textContent;
+        } else {
+            const logo = document.createElement('img');
+            logo.id = 'logo'
+            logo.src = 'assets/nba.png'
+            header_cell.id = 'logo_container';
+            header_cell.appendChild(logo);
+        }
+        header_cell.style.width = node.getBoundingClientRect().width + 'px';
+        header_cell.style.height = '20px';
+        header.appendChild(header_cell);
+    }
+    */

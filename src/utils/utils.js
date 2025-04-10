@@ -62,7 +62,7 @@ function projection(pts_stats) {
     return (projected_fg + projected_tp + projected_ft).toFixed(1)
 }
 
-function create_table(database){
+function create_table(lineups, stats, props){
     const table = []
 
     table.push([
@@ -99,7 +99,7 @@ function create_table(database){
         {label: '%ast', type: 'number'}
     ])
 
-    for (const group of database.lineups) {
+    for (const group of lineups) {
         for (const name of group) {
             const player_row = []
 
@@ -108,16 +108,16 @@ function create_table(database){
                 continue
             }
             
-            const pts_stats = filter(database.stats.points, name)
-            const adv_stats = filter(database.stats.adv, name)
-            const reb_stats = filter(database.stats.rebounds, name)
-            const ast_stats = filter(database.stats.assists, name)
-            const usg_stats = filter(database.stats.usg, name)
+            const pts_stats = filter(stats.points, name)
+            const adv_stats = filter(stats.adv, name)
+            const reb_stats = filter(stats.rebounds, name)
+            const ast_stats = filter(stats.assists, name)
+            const usg_stats = filter(stats.usg, name)
             let index = -1
 
             player_row.push(name)
             //index = find_index(database.props.pts, name)
-            const pts = index === -1 ? -1 : database.props.pts[index]['point']
+            const pts = index === -1 ? -1 : props.pts[index]['point']
             player_row.push(pts)
             player_row.push(pts - pts_stats[30])
             const proj = projection(pts_stats)
@@ -134,7 +134,7 @@ function create_table(database){
             player_row.push(adv_stats[30])
             player_row.push(usg_stats[28])
             //index = find_index(database.props.reb, name)
-            const reb = index === -1 ? -1 : database.props.reb[index]['point']
+            const reb = index === -1 ? -1 : props.reb[index]['point']
             player_row.push(reb)
             player_row.push(reb - (reb_stats[8] + reb_stats[17]).toFixed(2))
             player_row.push(reb_stats[8])
@@ -145,7 +145,7 @@ function create_table(database){
             player_row.push(reb_stats[29])
             player_row.push(usg_stats[20])
             //index = find_index(database.props.ast, name)
-            const ast = index === -1 ? -1 : database.props.ast[index]['point']
+            const ast = index === -1 ? -1 : props.ast[index]['point']
             player_row.push(ast)
             player_row.push(ast - ast_stats[10])
             player_row.push(ast_stats[10])
@@ -158,6 +158,7 @@ function create_table(database){
         }
         table.push(['',null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null])
     }
+    table.pop() // remove last empty row
     return table
 }
 

@@ -33,16 +33,23 @@ async function createWindow() {
 
     const ids = await fetch_game_ids()
     const season = '2024-25'
-    const date_from = '2/6/2025'
+    const deadline = '2/6/2025'
 
     let database = {
         lineups: await fetch_lineups(),
         stats: {
-            points: await fetch_stats(PTS_ENDPOINT(date_from, season)),
-            adv: await fetch_stats(ADV_ENDPOINT(date_from, season)),
-            usg: await fetch_stats(USG_ENDPOINT(date_from, season)),
-            rebounds: await fetch_stats(REB_ENDPOINT(date_from, season)),
-            assists: await fetch_stats(AST_ENDPOINT(date_from, season)),
+            points: await fetch_stats(PTS_ENDPOINT('', season)),
+            adv: await fetch_stats(ADV_ENDPOINT('', season)),
+            usg: await fetch_stats(USG_ENDPOINT('', season)),
+            rebounds: await fetch_stats(REB_ENDPOINT('', season)),
+            assists: await fetch_stats(AST_ENDPOINT('', season)),
+        },
+        stats_after_deadline: {
+            points: await fetch_stats(PTS_ENDPOINT(deadline, season)),
+            adv: await fetch_stats(ADV_ENDPOINT(deadline, season)),
+            usg: await fetch_stats(USG_ENDPOINT(deadline, season)),
+            rebounds: await fetch_stats(REB_ENDPOINT(deadline, season)),
+            assists: await fetch_stats(AST_ENDPOINT(deadline, season)),
         },
         props: {
             //pts: await fetch_props(ids, 'player_points'),
@@ -53,7 +60,8 @@ async function createWindow() {
         play_types_defense: await fetch_play_types('T', 'defensive')
     }
 
-    const datatable = create_table(database)
+    const datatable = create_table(database.lineups, database.stats, database.props)
+    const deadline_datatable = create_table(database.lineups, database.stats_after_deadline, database.props)
 
     ipcMain.handle('make-http-request', async (event, config) => {
         try {
@@ -66,7 +74,7 @@ async function createWindow() {
 
     win.loadFile(join(__dirname, './index.html'))
         .then(() => {
-            win.webContents.send('load', datatable, database)
+            win.webContents.send('load', datatable, deadline_datatable, database)
         })
         .then(() => {
             load_window.close()
