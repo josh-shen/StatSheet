@@ -1,6 +1,7 @@
-const {app, BrowserWindow} = require('electron')
+const {app, ipcMain, BrowserWindow} = require('electron')
 const {join} = require('path')
-const {fetch_lineups, fetch_stats, fetch_game_ids, fetch_props, fetch_play_types} = require('./utils/fetchers.js')
+const axios = require('axios')
+const {fetch_lineups, fetch_stats, fetch_play_types, fetch_game_ids, fetch_props} = require('./utils/fetchers.js')
 const {PTS_ENDPOINT, ADV_ENDPOINT, REB_ENDPOINT, AST_ENDPOINT, USG_ENDPOINT} = require('./utils/endpoints.js')
 const {create_table} = require('./utils/utils.js')
 
@@ -25,29 +26,23 @@ async function createWindow() {
         resizable: false,
         webPreferences: {
             preload: join(__dirname, './preload.js'),
+            contextIsolation: true,
             nodeIntegration: true
         }
     })
 
     const ids = await fetch_game_ids()
     const season = '2024-25'
-    const post_deadline = '2/6/2025'
+    const date_from = '2/6/2025'
 
-    const database = {
+    let database = {
         lineups: await fetch_lineups(),
         stats: {
-            points: await fetch_stats(PTS_ENDPOINT('', season)),
-            adv: await fetch_stats(ADV_ENDPOINT('', season)),
-            usg: await fetch_stats(USG_ENDPOINT('', season)),
-            rebounds: await fetch_stats(REB_ENDPOINT('', season)),
-            assists: await fetch_stats(AST_ENDPOINT('', season)),
-        },
-        stats_post_deadline: {
-            points: await fetch_stats(PTS_ENDPOINT(post_deadline, season)),
-            adv: await fetch_stats(ADV_ENDPOINT(post_deadline, season)),
-            usg: await fetch_stats(USG_ENDPOINT(post_deadline, season)),
-            rebounds: await fetch_stats(REB_ENDPOINT(post_deadline, season)),
-            assists: await fetch_stats(AST_ENDPOINT(post_deadline, season)),
+            points: await fetch_stats(PTS_ENDPOINT(date_from, season)),
+            adv: await fetch_stats(ADV_ENDPOINT(date_from, season)),
+            usg: await fetch_stats(USG_ENDPOINT(date_from, season)),
+            rebounds: await fetch_stats(REB_ENDPOINT(date_from, season)),
+            assists: await fetch_stats(AST_ENDPOINT(date_from, season)),
         },
         props: {
             //pts: await fetch_props(ids, 'player_points'),
@@ -59,6 +54,15 @@ async function createWindow() {
     }
 
     const datatable = create_table(database)
+
+    ipcMain.handle('make-http-request', async (event, config) => {
+        try {
+            const response = await axios(config);
+            return response.data
+        } catch (error) {
+            console.log(error)
+        }
+    })
 
     win.loadFile(join(__dirname, './index.html'))
         .then(() => {

@@ -10,7 +10,7 @@ const RGB_Linear_Shade=(p,c)=>{
 }
 const RGB_Log_Blend=(p,c0,c1)=>{
     var i=parseInt,r=Math.round,P=1-p,[a,b,c,d]=c0.split(","),[e,f,g,h]=c1.split(","),x=d||h,j=x?","+(!d?h:!h?d:r((parseFloat(d)*P+parseFloat(h)*p)*1000)/1000+")"):")";
-    return"rgb"+(x?"a(":"(")+r((P*i(a[3]=="a"?a.slice(5):a.slice(4))**2+p*i(e[3]=="a"?e.slice(5):e.slice(4))**2)**0.5)+","+r((P*i(b)**2+p*i(f)**2)**0.5)+","+r((P*i(c)**2+p*i(g)**2)**0.5)+j;
+    return"rgb"+(x?"a(":"(")+r((P*i(a[3]==="a"?a.slice(5):a.slice(4))**2+p*i(e[3]==="a"?e.slice(5):e.slice(4))**2)**0.5)+","+r((P*i(b)**2+p*i(f)**2)**0.5)+","+r((P*i(c)**2+p*i(g)**2)**0.5)+j;
 }
 function shade(value, mid, high, scale) {
     if (!value) {
@@ -45,12 +45,25 @@ function format_cells(data, database) {
 
     // individual game colors
     for (let i = 0; i < r / 12; i++) {
+        // team colors
+        for (let j = 0; j < 11; j++) {
+            const r = j + (i * 12)
+            let color
+            if (j < 5) {
+                color = `--${database.lineups[i][5]['away'].toLowerCase()}-alternate`
+            } else {
+                color = `--${database.lineups[i][5]['home'].toLowerCase()}`
+            }
+            data.setProperty(r, 0, 'className', 'name_cell')
+            data.setProperty(r, 0, 'style', `border-left: 4px solid var(${color}) !important`)
+        }
         // spread, points total
+        const row = 5 + (i * 12)
         const favorite = database.lineups[i][5]['favorite']
         const spread = database.lineups[i][5]['spread']
         const total = database.lineups[i][5]['total']
 
-        data.setValue(5 + (i * 12), 0, `<span>${favorite} -${spread}</span><span class="total">+/-${total}</span>`)
+        data.setValue(row, 0, `<span>${favorite} -${spread}</span><span class="total">+/-${total}</span>`)
         // spread
         if (database.lineups[i][5]['spread'] <= 3) {
             color = green
@@ -61,16 +74,24 @@ function format_cells(data, database) {
         } else {
             color = red
         }
-        data.setProperty(5 + (i * 12), 0, 'style', `background-color: ${color};`)
+        data.setProperty(row, 0, 'style', `background-color: ${color}; display: flex; justify-content: space-between;`)
 
         // injury indicator
         for (const obj of database.lineups[i][5]['injury']) {
             const key = Object.keys(obj)
             let val = obj[key[0]]
-            val = val.substring(0, val.lastIndexOf(' '))
+            const snip_start = val.indexOf("(") // remove (injury), (illness), etc. tags from description
+            const snip_end = val.indexOf(")")
+            if (snip_start !== -1 || snip_end !== -1) {
+                val = val.slice(0, snip_start - 1) + val.slice(snip_end + 1);
+            }
             const r = Number(key[0]) + (i * 12)
             let cell = data.getValue(r, 0)
-            data.setValue(r, 0, cell + `<span class="injuryAlert" data-tooltip="${val}"> GTD</span>`)
+            if (val.includes('Will not return') || val.includes('Out')) {
+                data.setValue(r, 0, cell + `<span class="outAlert" injury-tooltip="${val}"> OUT</span>`)
+            } else {
+                data.setValue(r, 0, cell + `<span class="injuryAlert" injury-tooltip="${val}"> GTD</span>`)
+            }
         }
 
         // rebounding colors
@@ -175,7 +196,6 @@ window.loaderAPI.load((event, data_table, database) => {
     // create data grid
     google.charts.load('current', {'packages':['table']});
     google.charts.setOnLoadCallback(drawTable);
-
     function drawTable() {
         const data = new google.visualization.arrayToDataTable(data_table, false);
 
@@ -186,12 +206,33 @@ window.loaderAPI.load((event, data_table, database) => {
         const options = {
             showRowNumber: false,
             allowHtml: true,
-            cssClassNames: {tableCell: 'tableCell'},
+            cssClassNames: {tableCell: 'tableCell', headerCell: 'headerCell'},
             sort: 'disable',
             width: '100%'
         }
 
         table.draw(data, options);
+
+        // create custom header
+        const thead = document.querySelector('.google-visualization-table-tr-head')
+        const header_cells = thead.childNodes;
+        const header = document.querySelector('#header');
+        for (const node of header_cells) {
+            const header_cell = document.createElement('div');
+            if (!node.textContent.includes('-')) {
+                header_cell.textContent = node.textContent;
+            } else {
+                const logo = document.createElement('img');
+                logo.id = 'logo'
+                logo.src = 'assets/nba.png'
+                header_cell.id = 'logo_container';
+                header_cell.appendChild(logo);
+            }
+            header_cell.style.width = node.getBoundingClientRect().width + 'px';
+            header_cell.style.height = '28px';
+            header.appendChild(header_cell);
+        }
+
         const tbody = document.querySelector('tbody');
 
         // remove last (empty) row
@@ -205,11 +246,15 @@ window.loaderAPI.load((event, data_table, database) => {
             const cell = e.target.closest('td')
             if (!cell) return
 
+            const row = cell.parentElement;
+
+            // allow cell editing only on player rows
             if (cell.cellIndex === 1 || cell.cellIndex === 15 || cell.cellIndex === 24) {
-                cell.contentEditable = true // allow edit to input alternate or missing lines
-                // update projection values and formatting
-                cell.addEventListener('blur', update_cell)
-                cell.id = 'editing'
+                if ((row.rowIndex - 6) % 6 !== 0) {
+                    cell.contentEditable = true
+                    // update projection values and formatting
+                    cell.addEventListener('blur', update_cell)
+                }
             }
         }
         function update_cell(sender){
@@ -276,21 +321,22 @@ window.loaderAPI.load((event, data_table, database) => {
         }
     }
 
-    // select player to visualize on pie chart
-    const select = document.getElementById('select_player');
-    for (const group of database.lineups) {
-        for (const name of group) {
-            if (typeof name !== 'string') continue
-
-            const element = document.createElement('option');
-            element.textContent = name;
-            element.value = name;
-            select.appendChild(element);
+    // add click event listener to table cells
+    const table = document.getElementById('table');
+    table.addEventListener('click', async e => {
+        const target = e.target
+        if (target.classList.contains('name_cell')) {
+            let text = target.textContent
+            if (text.includes('GTD')) {
+                text = text.substring(0, text.indexOf('GTD') - 1)
+            }
+            createPieChart(text)
+            await createColumnChart(text)
         }
-    }
+    })
 
     // create pie chart
-    select.addEventListener('change', (event) => {
+    function createPieChart(name) {
         const dataset = [
             ['Isolation', 0],
             ['Transition', 0],
@@ -308,7 +354,7 @@ window.loaderAPI.load((event, data_table, database) => {
 
         // set slice values
         for (const [key, value] of Object.entries(database.play_types)) {
-            for (const player of value) if (player.includes(event.target["value"])) {
+            for (const player of value) if (player.includes(name)) {
                 player_team = player[4]
                 switch (key) {
                     case 'Isolation':
@@ -352,7 +398,7 @@ window.loaderAPI.load((event, data_table, database) => {
         // find defending team
         let opponent
         for (const match of database.lineups) {
-            const player_index = match.indexOf(event.target["value"])
+            const player_index = match.indexOf(name)
             if (player_index !== -1 && player_index < 5) {
                 opponent = match[5]['home']
                 break
@@ -361,7 +407,7 @@ window.loaderAPI.load((event, data_table, database) => {
                 break
             }
         }
-        console.log(opponent)
+
         // set variable slice colors
         const percentile = {}
         for (const [key, value] of Object.entries(database.play_types_defense)) {
@@ -377,9 +423,9 @@ window.loaderAPI.load((event, data_table, database) => {
         }
 
         google.charts.load('current', {'packages':['corechart']});
-        google.charts.setOnLoadCallback(drawChart);
+        google.charts.setOnLoadCallback(drawPieChart);
+        function drawPieChart() {
 
-        function drawChart() {
             const data = google.visualization.arrayToDataTable(dataset, true);
             const options = {
                 slices: {
@@ -396,12 +442,61 @@ window.loaderAPI.load((event, data_table, database) => {
                     10: {color: percentile[dataset[10][0]]}
                 },
                 legend: 'none',
-                chartArea: {width: '100%', height: '100%'},
+                chartArea: {width: '90%', height: '90%'},
             }
 
             const chart = new google.visualization.PieChart(document.getElementById('piechart'));
             chart.draw(data, options);
         }
-    })
+    }
 
+    // create bar chart
+    async function createColumnChart(name) {
+        let team
+        for (const group of database['lineups']) {
+            if (group.includes(name)) {
+                const index = group.indexOf(name)
+                if (index < 5) {
+                    team = group[5]['away']
+                } else {
+                    team = group[5]['home']
+                }
+                break
+            }
+        }
+
+        const styles = getComputedStyle(document.documentElement);
+        const color = styles.getPropertyValue(`--${team.toLowerCase()}`);
+
+        let dataset = []
+        const index = database['stats']['assists'].findIndex(element => element.includes(name))
+        const id = database['stats']['assists'][index][0]
+        const data = await window.loaderAPI.makeRequest({
+            url: window.loaderAPI.player_assists_endpoint('', '2024-25', id),
+            method: 'GET',
+            headers: window.loaderAPI.header,
+        })
+        for (const n of data['resultSets'][0]['rowSet']) {
+            if (n[4] !== team || n[11] === 0) continue
+            dataset.push([n[7], n[11]])
+        }
+        dataset.sort(function(a, b) {
+            return a[1] - b[1];
+        });
+
+        google.charts.load('current', {'packages': ['corechart']});
+        google.charts.setOnLoadCallback(drawColumnChart);
+
+        function drawColumnChart() {
+            const data = google.visualization.arrayToDataTable(dataset, true)
+            const options = {
+                chartArea: {width: '80%', height: '70%'},
+                legend: 'none',
+                colors: [color]
+            };
+
+            const chart = new google.visualization.ColumnChart(document.getElementById('columnchart'));
+            chart.draw(data, options)
+        }
+    }
 })

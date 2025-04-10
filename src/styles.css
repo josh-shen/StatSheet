@@ -7,30 +7,109 @@ body {
 div::-webkit-scrollbar {
     display: none;
 }
-#table {
-    height: 60%;
+
+/* team colors */
+:root {
+    --atl: #E03A3E; --atl-alternate: #FDB927;
+    --bos: #008348; --bos-alternate: #BA9653;
+    --bkn: #000000; --bkn-alternate: #FFFFFF;
+    --cha: #00788C; --cha-alternate: #1D1160;
+    --chi: #CE1141; --chi-alternate: #000000;
+    --cle: #860038; --cle-alternate: #B48B52;
+    --dal: #0053BC; --dal-alternate: #B8C4CA;
+    --den: #0E2240; --den-alternate: #FEC524;
+    --det: #1D428A; --det-alternate: #DE1E35;
+    --gsw: #1D428A; --gsw-alternate: #FFC600;
+    --hou: #CE1141; --hou-alternate: #000000;
+    --ind: #002D62; --ind-alternate: #FDB525;
+    --lac: #12173F; --lac-alternate: #CF152D;
+    --lal: #552583; --lal-alternate: #FDB927;
+    --mem: #5D76A9; --mem-alternate: #0C2340;
+    --mia: #98002E; --mia-alternate: #F9A01B;
+    --mil: #00471B; --mil-alternate: #EEE1C6;
+    --min: #0C2340; --min-alternate: #78BE20;
+    --nop: #002B5C; --nop-alternate: #D12232;
+    --nyk: #1D4188; --nyk-alternate: #F58426;
+    --okc: #007AC1; --okc-alternate: #F05033;
+    --orl: #0077C0; --orl-alternate: #C4CEd4;
+    --phi: #006BB6; --phi-alternate: #CF102D;
+    --phx: #1D1160; --phx-alternate: #E56020;
+    --por: #E03A3E; --por-alternate: #000000;
+    --sac: #5A2D81; --sac-alternate: #63727A;
+    --sas: #000000; --sas-alternate: #BBC4CA;
+    --tor: #000000; --tor-alternate: #BD1B21;
+    --uta: #002B5C; --uta-alternate: #00471B;
+    --was: #002B5C; --was-alternate: #E31837;
 }
-.google-visualization-table .gradient {
-    background-image: none !important;
+
+#table_container {
+    height: 54%;
+    position: relative;
+}
+
+#header {
+    display: flex;
+    flex-direction: row;
+    position: fixed;
+    top: 0;
+    width: 100%;
     background-color: #FFF;
-    border: none !important;
+    z-index: 9;
+    font-family: Arial, Helvetica, sans-serif;
+    font-size: 10pt;
+    font-weight: bold;
+    vertical-align: bottom;
+}
+#logo_container {
+    display: flex;
+    padding-left: .35em;
+    align-items: center; /* Centers the image vertically */
+}
+#logo {
+    max-height: calc(100% - 0.7em); /* Accounts for padding on top and bottom */
+    height: auto; /* Maintains aspect ratio */
+}
+
+#line {
+    height: 2px;
+    width: 100%;
+    background-color: #3d60c3;
+    position: fixed;
+    top: calc(28px);
+    z-index: 8;
+}
+
+#table {
+    height: 100%;
+    padding-top: calc(8px + 1px);
+}
+.headerCell {
+    visibility: hidden;
 }
 .tableCell {
     border: none !important;
 }
+td:focus {
+    background-color: #FFF !important;
+}
+
 .injuryAlert {
     color: darkorange;
     font-size: 8pt;
     font-weight: bold;
 }
-[data-tooltip] {
+.outAlert {
+    color: red;
+    font-size: 8pt;
+    font-weight: bold;
+}
+[injury-tooltip] {
     display: inline-block;
     position: relative;
     padding: 4px;
 }
-
-[data-tooltip]:before {
-    content: attr(data-tooltip);
+[injury-tooltip]:before {
+    content: attr(injury-tooltip);
     display: none;
     position: absolute;
     background: #000;
@@ -46,24 +125,33 @@ div::-webkit-scrollbar {
     margin-left: 6px;
     white-space: nowrap;
 }
-
-[data-tooltip]:after {
+[injury-tooltip]:after {
     left: 100%;
     border-width: 6px 6px 6px 0;
     border-right-color: #000;
 }
-[data-tooltip]:hover:before,
-[data-tooltip]:hover:after {
+[injury-tooltip]:hover:before,
+[injury-tooltip]:hover:after {
     display: block;
     z-index: 50;
 }
-.total {
 
-}
-#editing {
-    background-color: #FFF !important;
-}
 #piechart {
-    width: 500px;
-    height: 300px;
+    height: 46%;
+    width: 50%;
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    padding: 15px; /* Adds space inside the div */
+    box-sizing: border-box; /* Ensures padding doesn't increase the total size */
+}
+
+#columnchart {
+    height: 46%;
+    width: 50%;
+    position: absolute;
+    bottom: 0;
+    right: 0;
+    padding: 15px; /* Adds space inside the div */
+    box-sizing: border-box; /* Ensures padding doesn't increase the total size */
 }

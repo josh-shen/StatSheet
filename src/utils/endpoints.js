@@ -10,24 +10,26 @@ const header = {
 
 const LINEUP_ENDPOINT = process.env.LINEUP_ENDPOINT
 
-function PTS_ENDPOINT(date_from='', season, type='Regular%20Season') {
-    return `https://stats.nba.com/stats/leaguedashplayerstats?College=&Conference=&Country=&DateFrom=${date_from}&DateTo=&Division=&DraftPick=&DraftYear=&GameScope=&GameSegment=&Height=&ISTRound=&LastNGames=0&LeagueID=00&Location=&MeasureType=Base&Month=0&OpponentTeamID=0&Outcome=&PORound=0&PaceAdjust=N&PerMode=PerGame&Period=0&PlayerExperience=&PlayerPosition=&PlusMinus=N&Rank=N&Season=${season}&SeasonSegment=&SeasonType=${type}&ShotClockRange=&StarterBench=&TeamID=0&VsConference=&VsDivision=&Weight=`
+function PTS_ENDPOINT(date_from='', season) {
+    return `https://stats.nba.com/stats/leaguedashplayerstats?DateFrom=${date_from}&DateTo=&LastNGames=0&LeagueID=00&MeasureType=Base&Month=0&OpponentTeamID=0&PORound=0&PaceAdjust=N&PerMode=PerGame&Period=0&PlusMinus=N&Rank=N&Season=${season}&SeasonType=Regular%20Season&TeamID=0`
 }
-function ADV_ENDPOINT(date_from='', season, type='Regular%20Season') {
-    return `https://stats.nba.com/stats/leaguedashplayerstats?College=&Conference=&Country=&DateFrom=${date_from}&DateTo=&Division=&DraftPick=&DraftYear=&GameScope=&GameSegment=&Height=&ISTRound=&LastNGames=0&LeagueID=00&Location=&MeasureType=Advanced&Month=0&OpponentTeamID=0&Outcome=&PORound=0&PaceAdjust=N&PerMode=PerGame&Period=0&PlayerExperience=&PlayerPosition=&PlusMinus=N&Rank=N&Season=${season}&SeasonSegment=&SeasonType=${type}&ShotClockRange=&StarterBench=&TeamID=0&VsConference=&VsDivision=&Weight=`
-
+function ADV_ENDPOINT(date_from='', season) {
+    return `https://stats.nba.com/stats/leaguedashplayerstats?DateFrom=${date_from}&DateTo=&LastNGames=0&LeagueID=00&MeasureType=Advanced&Month=0&OpponentTeamID=0&PORound=0&PaceAdjust=N&PerMode=PerGame&Period=0&PlusMinus=N&Rank=N&Season=${season}&SeasonType=Regular%20Season&TeamID=0`
 }
-function REB_ENDPOINT(date_from='', season, type='Regular%20Season') {
-    return `https://stats.nba.com/stats/leaguedashptstats?College=&Conference=&Country=&DateFrom=${date_from}&DateTo=&Division=&DraftPick=&DraftYear=&GameScope=&Height=&ISTRound=&LastNGames=0&LeagueID=00&Location=&Month=0&OpponentTeamID=0&Outcome=&PORound=0&PerMode=PerGame&PlayerExperience=&PlayerOrTeam=Player&PlayerPosition=&PtMeasureType=Rebounding&Season=${season}&SeasonSegment=&SeasonType=${type}&StarterBench=&TeamID=0&VsConference=&VsDivision=&Weight=`
+function REB_ENDPOINT(date_from='', season) {
+    return `https://stats.nba.com/stats/leaguedashptstats?DateFrom=${date_from}&DateTo=&LastNGames=0&LeagueID=00&Month=0&OpponentTeamID=0&PORound=0&PerMode=PerGame&PlayerOrTeam=Player&PtMeasureType=Rebounding&Season=${season}&SeasonType=Regular%20Season&TeamID=0`
 }
-function AST_ENDPOINT(date_from='', season, type='Regular%20Season') {
-    return `https://stats.nba.com/stats/leaguedashptstats?College=&Conference=&Country=&DateFrom=${date_from}&DateTo=&Division=&DraftPick=&DraftYear=&GameScope=&Height=&ISTRound=&LastNGames=0&LeagueID=00&Location=&Month=0&OpponentTeamID=0&Outcome=&PORound=0&PerMode=PerGame&PlayerExperience=&PlayerOrTeam=Player&PlayerPosition=&PtMeasureType=Passing&Season=${season}&SeasonSegment=&SeasonType=${type}&StarterBench=&TeamID=0&VsConference=&VsDivision=&Weight=`
+function AST_ENDPOINT(date_from='', season) {
+    return `https://stats.nba.com/stats/leaguedashptstats?DateFrom=${date_from}&DateTo=&LastNGames=0&LeagueID=00&Month=0&OpponentTeamID=0&PORound=0&PerMode=PerGame&PlayerOrTeam=Player&PtMeasureType=Passing&Season=${season}&SeasonType=Regular%20Season&TeamID=0`
 }
-function USG_ENDPOINT(date_from='', season, type='Regular%20Season') {
-    return `https://stats.nba.com/stats/leaguedashplayerstats?College=&Conference=&Country=&DateFrom=${date_from}&DateTo=&Division=&DraftPick=&DraftYear=&GameScope=&GameSegment=&Height=&ISTRound=&LastNGames=0&LeagueID=00&Location=&MeasureType=Usage&Month=0&OpponentTeamID=0&Outcome=&PORound=0&PaceAdjust=N&PerMode=PerGame&Period=0&PlayerExperience=&PlayerPosition=&PlusMinus=N&Rank=N&Season=${season}&SeasonSegment=&SeasonType=${type}&ShotClockRange=&StarterBench=&TeamID=0&VsConference=&VsDivision=&Weight=`
+function USG_ENDPOINT(date_from='', season) {
+    return `https://stats.nba.com/stats/leaguedashplayerstats?DateFrom=${date_from}&DateTo=&LastNGames=0&LeagueID=00&MeasureType=Usage&Month=0&OpponentTeamID=0&PORound=0&PaceAdjust=N&PerMode=PerGame&Period=0&PlusMinus=N&Rank=N&Season=${season}&SeasonType=Regular%20Season&TeamID=0`
 }
 function PLAYTYPE_ENDPOINT(playType, p_t, o_d) {
     return `https://stats.nba.com/stats/synergyplaytypes?LeagueID=00&PerMode=PerGame&PlayType=${playType}&PlayerOrTeam=${p_t}&SeasonType=Regular%20Season&SeasonYear=2024-25&TypeGrouping=${o_d}`
+}
+function PLAYER_AST_ENDPOINT(date_from='', season, playerID) {
+    return `https://stats.nba.com/stats/playerdashptpass?DateFrom=${date_from}&DateTo=&LastNGames=0&LeagueID=00&Month=0&OpponentTeamID=0&PORound=0&PerMode=PerGame&Period=0&PlayerID=${playerID}&Season=${season}&SeasonType=Regular%20Season&TeamID=0`
 }
 
 function GAME_ID_ENDPOINT() {
@@ -40,4 +42,16 @@ function ODDS_ENDPOINT(id, prop) {
     return `https://api.the-odds-api.com/v4/sports/basketball_nba/events/${id}/odds?apiKey=${process.env.API_KEY}&bookmakers=draftkings&markets=${prop}&oddsFormat=american`
 }
 
-module.exports = {header, LINEUP_ENDPOINT, PTS_ENDPOINT, ADV_ENDPOINT, REB_ENDPOINT, AST_ENDPOINT, USG_ENDPOINT, GAME_ID_ENDPOINT, ODDS_ENDPOINT, PLAYTYPE_ENDPOINT}
+module.exports = {
+    header,
+    LINEUP_ENDPOINT,
+    PTS_ENDPOINT,
+    ADV_ENDPOINT,
+    REB_ENDPOINT,
+    AST_ENDPOINT,
+    USG_ENDPOINT,
+    PLAYER_AST_ENDPOINT,
+    GAME_ID_ENDPOINT,
+    ODDS_ENDPOINT,
+    PLAYTYPE_ENDPOINT
+}

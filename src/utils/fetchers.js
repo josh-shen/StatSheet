@@ -46,12 +46,17 @@ async function fetch_lineups() {
             const home = []
             const away = []
             let flag = true
+            let empty = false
 
             for (let j = 0; j < names.length; j++) {
                 let name = names[j].querySelector("a")
+                if (name === null) {
+                    empty = true
+                    break
+                }
                 const injury = names[j].querySelectorAll("span")
-
-                if (injury[0] && !injury[0].textContent.includes('Playing')) {
+                const ignore = ['Playing', 'Starting', 'Off Injury Report', 'Ejected']
+                if (injury[0] && !ignore.some(keyword => injury[0].title.includes(keyword))) {
                     const index = j % 2 === 0 ? j / 2 : Math.ceil(j/2) + 5
                     teams['injury'].push({[index]: injury[0].title})
                 }
@@ -65,7 +70,8 @@ async function fetch_lineups() {
                 }
                 flag = !flag
             }
-            lineups.push([...home, teams, ...away])
+            if (!empty) lineups.push([...home, teams, ...away])
+
         }
     } catch (error) {
         console.error(error);
@@ -82,6 +88,24 @@ async function fetch_stats(url) {
     } catch (error) {
         console.log(error)
     }
+}
+
+async function fetch_play_types(p_t, o_d) {
+    const play_types = ['Isolation', 'Transition', 'PRBallHandler', 'PRRollMan', 'Postup', 'Spotup', 'Handoff', 'Cut', 'OffScreen', 'OffRebound', 'Misc']
+    const res = {}
+
+    for (const playType of play_types) {
+        try {
+            const response = await axios.get(PLAYTYPE_ENDPOINT(playType, p_t, o_d), {headers: header})
+            const data = await response.data
+
+            res[playType] = data["resultSets"][0]['rowSet']
+        } catch (error) {
+            console.log(error)
+        }
+    }
+
+    return res
 }
 
 async function fetch_game_ids() {
@@ -123,22 +147,4 @@ async function fetch_props(ids, prop) {
     return prop_lines
 }
 
-async function fetch_play_types(p_t, o_d) {
-    const play_types = ['Isolation', 'Transition', 'PRBallHandler', 'PRRollMan', 'Postup', 'Spotup', 'Handoff', 'Cut', 'OffScreen', 'OffRebound', 'Misc']
-    const res = {}
-
-    for (const playType of play_types) {
-        try {
-            const response = await axios.get(PLAYTYPE_ENDPOINT(playType, p_t, o_d), {headers: header})
-            const data = await response.data
-
-            res[playType] = data["resultSets"][0]['rowSet']
-        } catch (error){
-            console.log(error)
-        }
-    }
-
-    return res
-}
-
-module.exports = {fetch_lineups, fetch_stats, fetch_game_ids, fetch_props, fetch_play_types}
+module.exports = {fetch_lineups, fetch_stats, fetch_play_types, fetch_game_ids, fetch_props}
