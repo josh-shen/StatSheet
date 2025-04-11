@@ -23,7 +23,7 @@ async function createWindow() {
         height: 900,
         show: false,
         autoHideMenuBar: true,
-        resizable: false,
+        //resizable: false,
         webPreferences: {
             preload: join(__dirname, './preload.js'),
             contextIsolation: true,
@@ -60,8 +60,8 @@ async function createWindow() {
         play_types_defense: await fetch_play_types('T', 'defensive')
     }
 
-    const datatable = create_table(database.lineups, database.stats, database.props)
-    const deadline_datatable = create_table(database.lineups, database.stats_after_deadline, database.props)
+    const raw_table_data = create_table(database.lineups, database.stats, database.props)
+    const raw_deadline_table_data = create_table(database.lineups, database.stats_after_deadline, database.props)
 
     ipcMain.handle('make-http-request', async (event, config) => {
         try {
@@ -74,7 +74,7 @@ async function createWindow() {
 
     win.loadFile(join(__dirname, './index.html'))
         .then(() => {
-            win.webContents.send('load', datatable, deadline_datatable, database)
+            win.webContents.send('load', raw_table_data, raw_deadline_table_data, database)
         })
         .then(() => {
             load_window.close()

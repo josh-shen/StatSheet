@@ -192,22 +192,21 @@ function format_cells(data, database) {
     }
 }
 
-function drawTable(datatable, database, options, table_id) {
-    const data = new google.visualization.arrayToDataTable(datatable);
+function drawTable(data, database, options, table_id) {
+    const datatable = new google.visualization.arrayToDataTable(data);
 
-    format_cells(data, database)
+    format_cells(datatable, database)
 
     const table = new google.visualization.Table(document.getElementById(table_id));
 
-    table.draw(data, options);
-
-    const tbody = document.querySelector('tbody');
+    table.draw(datatable, options);
 
     // allow cell editing
-    tbody.addEventListener('click', e => edit_cells(e, data, table, options))
+    const tbody1 = document.querySelector(`#${table_id} tbody`);
+    tbody1.addEventListener('click', e => edit_cells(e, datatable, table, options, table_id))
 }
 
-function edit_cells(e, data, table, options) {
+function edit_cells(e, datatable, table, options, table_id) {
     const cell = e.target.closest('td')
     if (!cell) return
 
@@ -218,71 +217,71 @@ function edit_cells(e, data, table, options) {
         if ((row.rowIndex - 6) % 6 !== 0) {
             cell.contentEditable = true
             // update projection values and formatting
-            cell.addEventListener('blur', function(e) { update_cell(e, data, table, options) })
+            cell.addEventListener('blur', function(e) { update_cell(e, datatable, table, options, table_id) })
         }
     }
 }
 
-function update_cell(sender, data, table, options){
+function update_cell(sender, datatable, table, options, table_id){
     // store current scroll state
-    const container = document.querySelector('.google-visualization-table > div');
+    const container = document.querySelector(`#${table_id} .google-visualization-table > div`);
     const scrollState = container.scrollTop
 
     const row = sender.target.parentNode.rowIndex - 1
     let color
     if (sender.target.cellIndex === 1) {
-        data.setValue(row, 1, sender.target.innerHTML)
-        data.setValue(row, 2, sender.target.innerHTML - data.getValue(row, 5))
-        data.setValue(row, 3, sender.target.innerHTML - data.getValue(row, 6))
+        datatable.setValue(row, 1, sender.target.innerHTML)
+        datatable.setValue(row, 2, sender.target.innerHTML - datatable.getValue(row, 5))
+        datatable.setValue(row, 3, sender.target.innerHTML - datatable.getValue(row, 6))
         if (sender.target.innerHTML === '-1') {
-            data.setProperty(row, 1, 'style', `background-color: ${cover}; color: ${cover};`)
-            data.setProperty(row, 2, 'style', `background-color: ${cover}; color: ${cover};`)
-            data.setProperty(row, 3, 'style', `background-color: ${cover}; color: ${cover};`)
+            datatable.setProperty(row, 1, 'style', `background-color: ${cover}; color: ${cover};`)
+            datatable.setProperty(row, 2, 'style', `background-color: ${cover}; color: ${cover};`)
+            datatable.setProperty(row, 3, 'style', `background-color: ${cover}; color: ${cover};`)
         } else {
-            data.setProperty(row, 1, 'style', 'background-color: rgb(255, 255, 255);')
+            datatable.setProperty(row, 1, 'style', 'background-color: rgb(255, 255, 255);')
 
-            color = shade(data.getValue(row, 2) * -1, 0, 3, 0.33)
-            data.setProperty(row, 2, 'style', `background-color: ${color};`)
+            color = shade(datatable.getValue(row, 2) * -1, 0, 3, 0.33)
+            datatable.setProperty(row, 2, 'style', `background-color: ${color};`)
 
-            color = shade(data.getValue(row, 3) * -1, 0, 3, 0.33)
-            data.setProperty(row, 3, 'style', `background-color: ${color};`)
+            color = shade(datatable.getValue(row, 3) * -1, 0, 3, 0.33)
+            datatable.setProperty(row, 3, 'style', `background-color: ${color};`)
         }
     } else if (sender.target.cellIndex === 15) {
-        data.setValue(row, 15, sender.target.innerHTML)
-        data.setValue(row, 16, sender.target.innerHTML - data.getValue(row, 19))
+        datatable.setValue(row, 15, sender.target.innerHTML)
+        datatable.setValue(row, 16, sender.target.innerHTML - datatable.getValue(row, 19))
 
         if (sender.target.innerHTML === '-1') {
-            data.setProperty(row, 15, 'style', `background-color: ${cover}; color: ${cover};`)
-            data.setProperty(row, 16, 'style', `background-color: ${cover}; color: ${cover};`)
+            datatable.setProperty(row, 15, 'style', `background-color: ${cover}; color: ${cover};`)
+            datatable.setProperty(row, 16, 'style', `background-color: ${cover}; color: ${cover};`)
         } else {
-            data.setProperty(row, 15, 'style', 'background-color: rgb(255, 255, 255);')
+            datatable.setProperty(row, 15, 'style', 'background-color: rgb(255, 255, 255);')
 
-            color = shade(data.getValue(row, 16) * -1, 0, 3, 0.33)
-            data.setProperty(row, 16, 'style', `background-color: ${color};`)
+            color = shade(datatable.getValue(row, 16) * -1, 0, 3, 0.33)
+            datatable.setProperty(row, 16, 'style', `background-color: ${color};`)
         }
     } else if (sender.target.cellIndex === 24) {
-        data.setValue(row, 24, sender.target.innerHTML)
-        data.setValue(row, 25, sender.target.innerHTML - data.getValue(row, 26))
+        datatable.setValue(row, 24, sender.target.innerHTML)
+        datatable.setValue(row, 25, sender.target.innerHTML - datatable.getValue(row, 26))
 
         if (sender.target.innerHTML === '-1') {
-            data.setProperty(row, 24, 'style', `background-color: ${cover}; color: ${cover};`)
-            data.setProperty(row, 25, 'style', `background-color: ${cover}; color: ${cover};`)
+            datatable.setProperty(row, 24, 'style', `background-color: ${cover}; color: ${cover};`)
+            datatable.setProperty(row, 25, 'style', `background-color: ${cover}; color: ${cover};`)
         } else {
-            data.setProperty(row, 24, 'style', 'background-color: rgb(255, 255, 255);')
+            datatable.setProperty(row, 24, 'style', 'background-color: rgb(255, 255, 255);')
 
-            color = shade(data.getValue(row, 25) * -1, 0, 3, 0.33)
-            data.setProperty(row, 25, 'style', `background-color: ${color};`)
+            color = shade(datatable.getValue(row, 25) * -1, 0, 3, 0.33)
+            datatable.setProperty(row, 25, 'style', `background-color: ${color};`)
         }
     }
 
-    table.draw(data, options)
+    table.draw(datatable, options)
 
     // the table has been redrawn, so go back to the saved scrolled position
-    const newContainer = document.querySelector('.google-visualization-table > div')
+    const newContainer = document.querySelector(`#${table_id} .google-visualization-table > div`)
     newContainer.scrollTop = scrollState
 
-    const tbody = document.querySelector('tbody');
-    tbody.addEventListener('click', e => edit_cells(e, data, table, options))
+    const tbody = document.querySelector(`#${table_id} tbody`);
+    tbody.addEventListener('click', e => edit_cells(e, datatable, table, options))
 }
 
 async function handleNameClick(e, database) {
@@ -383,7 +382,7 @@ function drawPieChart(name, database) {
         }
     }
 
-    const data = google.visualization.arrayToDataTable(dataset, true);
+    const datatable = google.visualization.arrayToDataTable(dataset, true);
     const options = {
         slices: {
             0: {color: percentile[dataset[0][0]]},
@@ -403,7 +402,7 @@ function drawPieChart(name, database) {
     }
 
     const chart = new google.visualization.PieChart(document.getElementById('piechart'));
-    chart.draw(data, options);
+    chart.draw(datatable, options);
 }
 
 async function drawColumnChart(name, database) {
@@ -439,7 +438,7 @@ async function drawColumnChart(name, database) {
         return a[1] - b[1];
     });
 
-    const data = google.visualization.arrayToDataTable(dataset, true)
+    const datatable = google.visualization.arrayToDataTable(dataset, true)
     const options = {
         chartArea: {width: '80%', height: '70%'},
         legend: 'none',
@@ -447,10 +446,10 @@ async function drawColumnChart(name, database) {
     };
 
     const chart = new google.visualization.ColumnChart(document.getElementById('columnchart'));
-    chart.draw(data, options)
+    chart.draw(datatable, options)
 }
 
-window.loaderAPI.load((e, datatable, deadline_datatable, database) => {
+window.loaderAPI.load((e, raw_table_data, raw_deadline_table_data, database) => {
     google.charts.load('current', {'packages':['table']});
     google.charts.load('current', {'packages':['corechart']});
 
@@ -463,8 +462,8 @@ window.loaderAPI.load((e, datatable, deadline_datatable, database) => {
         width: '100%',
         height: '100%'
     }
-    google.charts.setOnLoadCallback(function() { drawTable(datatable, database, options, 'table1') });
-    google.charts.setOnLoadCallback(function() { drawTable(deadline_datatable, database, options, 'table2') });
+    google.charts.setOnLoadCallback(function() { drawTable(raw_table_data, database, options, 'table1') });
+    google.charts.setOnLoadCallback(function() { drawTable(raw_deadline_table_data, database, options, 'table2') });
 
     // add click event listener to table cells
     const table1 = document.getElementById('table1');
@@ -479,11 +478,23 @@ window.loaderAPI.load((e, datatable, deadline_datatable, database) => {
         const table2 = document.getElementById('table2');
 
         if (table1.style.display === 'none') {
+            const container = document.querySelector('#table2 .google-visualization-table > div');
+            const scrollState = container.scrollTop
+
             table1.style.setProperty('display', 'block');
             table2.style.setProperty('display', 'none');
+
+            const newContainer = document.querySelector('#table1 .google-visualization-table > div')
+            newContainer.scrollTop = scrollState
         } else {
+            const container = document.querySelector('#table1 .google-visualization-table > div');
+            const scrollState = container.scrollTop
+
             table1.style.setProperty('display', 'none');
             table2.style.setProperty('display', 'block');
+
+            const newContainer = document.querySelector('#table2 .google-visualization-table > div')
+            newContainer.scrollTop = scrollState
         }
     })
 
@@ -491,8 +502,8 @@ window.loaderAPI.load((e, datatable, deadline_datatable, database) => {
     const refresh_button = document.getElementById('refresh_button');
     refresh_button.addEventListener('click', async function(e) {
         database['lineups'] = await window.loaderAPI.fetch_lineups();
-        drawTable(datatable, database, options, 'table1')
-        drawTable(deadline_datatable, database, options, 'table2')
+        drawTable(raw_table_data, database, options, 'table1')
+        drawTable(raw_deadline_table_data, database, options, 'table2')
     })
 })
 
