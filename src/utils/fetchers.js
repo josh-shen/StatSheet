@@ -129,7 +129,7 @@ async function fetch_props(ids, prop) {
         try {
             const response = await axios.get(ODDS_ENDPOINT(id, prop))
             const data = await response.data
-
+            if (data['bookmakers'] === []) continue // bookmakers have not created lines for this prop yet
             const lines = data['bookmakers'][0]['markets'][0]['outcomes']
 
             for (const n of lines) {

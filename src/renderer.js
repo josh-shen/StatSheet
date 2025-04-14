@@ -465,6 +465,10 @@ window.loaderAPI.load((e, raw_table_data, raw_deadline_table_data, database) => 
     google.charts.setOnLoadCallback(function() { drawTable(raw_table_data, database, options, 'table1') });
     google.charts.setOnLoadCallback(function() { drawTable(raw_deadline_table_data, database, options, 'table2') });
 
+    // show which table is currently displayed (season stats is displayed on default)
+    const table_indicator = document.querySelector('#tableID')
+    table_indicator.innerHTML = "Season stats"
+
     // add click event listener to table cells
     const table1 = document.getElementById('table1');
     const table2 = document.getElementById('table2');
@@ -476,6 +480,7 @@ window.loaderAPI.load((e, raw_table_data, raw_deadline_table_data, database) => 
     switch_button.addEventListener('click', function(e) {
         const table1 = document.getElementById('table1');
         const table2 = document.getElementById('table2');
+        const tableID = document.getElementById('tableID');
 
         if (table1.style.display === 'none') {
             const container = document.querySelector('#table2 .google-visualization-table > div');
@@ -483,6 +488,7 @@ window.loaderAPI.load((e, raw_table_data, raw_deadline_table_data, database) => 
 
             table1.style.setProperty('display', 'block');
             table2.style.setProperty('display', 'none');
+            tableID.innerHTML = "Season stats"
 
             const newContainer = document.querySelector('#table1 .google-visualization-table > div')
             newContainer.scrollTop = scrollState
@@ -492,6 +498,7 @@ window.loaderAPI.load((e, raw_table_data, raw_deadline_table_data, database) => 
 
             table1.style.setProperty('display', 'none');
             table2.style.setProperty('display', 'block');
+            tableID.innerHTML = "Post trade deadline stats"
 
             const newContainer = document.querySelector('#table2 .google-visualization-table > div')
             newContainer.scrollTop = scrollState
