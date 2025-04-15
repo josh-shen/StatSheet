@@ -3,7 +3,7 @@ const {join} = require('path')
 const axios = require('axios')
 const {fetch_lineups, fetch_stats, fetch_play_types, fetch_game_ids, fetch_props} = require('./utils/fetchers.js')
 const {PTS_ENDPOINT, ADV_ENDPOINT, REB_ENDPOINT, AST_ENDPOINT, USG_ENDPOINT} = require('./utils/endpoints.js')
-const {create_table} = require('./utils/utils.js')
+const {parse_lineups, create_table} = require('./utils/utils.js')
 
 async function createWindow() {
     const load_window = new BrowserWindow({
@@ -63,10 +63,23 @@ async function createWindow() {
     const raw_table_data = create_table(database.lineups, database.stats, database.props)
     const raw_deadline_table_data = create_table(database.lineups, database.stats_after_deadline, database.props)
 
-    ipcMain.handle('make-http-request', async (event, config) => {
+    ipcMain.handle('make-http-request', async (event, options) => {
         try {
-            const response = await axios(config);
+            const response = await axios(options);
             return response.data
+        } catch (error) {
+            console.log(error)
+        }
+    })
+
+    ipcMain.handle('request-and-parse', async (event, options) => {
+        try {
+            const response = await axios(options);
+            const { JSDOM } = require('jsdom');
+            const dom = new JSDOM(response.data);
+            const tables = dom.window.document.querySelectorAll('.datatable');
+
+            return parse_lineups(tables)
         } catch (error) {
             console.log(error)
         }

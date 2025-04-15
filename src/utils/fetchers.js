@@ -1,82 +1,17 @@
 const axios = require('axios')
 const jsdom = require('jsdom').JSDOM
 const {header, LINEUP_ENDPOINT, GAME_ID_ENDPOINT, ODDS_ENDPOINT, PLAYTYPE_ENDPOINT} = require("./endpoints.js")
-const {normalize_name, normalize_team} = require('./utils.js')
+const {parse_lineups, normalize_name} = require('./utils.js')
 
 async function fetch_lineups() {
-    const lineups = []
-
     try {
         const dom = await jsdom.fromURL(LINEUP_ENDPOINT)
         const tables = dom.window.document.querySelectorAll(".datatable");
 
-        for (let i = 0; i < tables.length; i++) {
-            const headers = tables[i].getElementsByTagName("th");
-
-            const teams = {}
-            teams['injury'] = []
-            for (let j = 0; j < headers.length; j++) {
-                if (headers[j].textContent.includes(" @ ")) {
-                    let s = headers[j].textContent.split(" ");
-                    teams['away'] = normalize_team(s[32])
-                    teams['home'] = normalize_team(s[34].trim())
-
-                    let lines = headers[j].querySelector("small")
-                    if (!lines) {
-                        teams['favorite'] = 'LIVE'
-                        teams['spread'] = 0
-                        teams['total'] = 'LIVE'
-                    } else {
-                        lines = lines.textContent.split(" ");
-
-                        if (lines[0] === 'EVEN') {
-                            teams['favorite'] = lines[0]
-                            teams['spread'] = 0
-                            teams['total'] = lines[2]
-                        } else {
-                            teams['favorite'] = lines[0]
-                            teams['spread'] = lines[2]
-                            teams['total'] = lines[4]
-                        }
-                    }
-                }
-            }
-
-            const names = tables[i].querySelectorAll("td[class=''], td[class='verified']");
-            const home = []
-            const away = []
-            let flag = true
-            let empty = false
-
-            for (let j = 0; j < names.length; j++) {
-                let name = names[j].querySelector("a")
-                if (name === null) {
-                    empty = true
-                    break
-                }
-                const injury = names[j].querySelectorAll("span")
-                const ignore = ['Playing', 'Starting', 'Off Injury Report', 'Ejected']
-                if (injury[0] && !ignore.some(keyword => injury[0].title.includes(keyword))) {
-                    const index = j % 2 === 0 ? j / 2 : Math.ceil(j/2) + 5
-                    teams['injury'].push({[index]: injury[0].title})
-                }
-
-                name = (name) ? normalize_name(name.textContent) : ''
-
-                if (flag) {
-                    home.push(name)
-                } else {
-                    away.push(name)
-                }
-                flag = !flag
-            }
-            if (!empty) lineups.push([...home, teams, ...away])
-
-        }
+        return parse_lineups(tables)
     } catch (error) {
         console.error(error);
     }
-    return lineups
 }
 
 async function fetch_stats(url) {

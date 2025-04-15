@@ -440,11 +440,13 @@ async function drawColumnChart(name, database) {
     let dataset = []
     const index = database['stats']['assists'].findIndex(element => element.includes(name))
     const id = database['stats']['assists'][index][0]
+
     const response = await window.loaderAPI.makeRequest({
-        url: window.loaderAPI.player_assists_endpoint('', '2024-25', id),
+        url: window.loaderAPI.player_ast_endpoint('', '2024-25', id),
         method: 'GET',
         headers: window.loaderAPI.header,
     })
+
     for (const n of response['resultSets'][0]['rowSet']) {
         if (n[4] !== team || n[11] === 0) continue
         dataset.push([n[7], n[11]])
@@ -452,7 +454,6 @@ async function drawColumnChart(name, database) {
     dataset.sort(function(a, b) {
         return a[1] - b[1];
     });
-
     const datatable = google.visualization.arrayToDataTable(dataset, true)
     const options = {
         chartArea: {width: '80%', height: '70%'},
@@ -465,6 +466,7 @@ async function drawColumnChart(name, database) {
 }
 
 window.loaderAPI.load((e, raw_table_data, raw_deadline_table_data, database) => {
+    console.log(database)
     google.charts.load('current', {'packages':['table']});
     google.charts.load('current', {'packages':['corechart']});
 
@@ -492,7 +494,7 @@ window.loaderAPI.load((e, raw_table_data, raw_deadline_table_data, database) => 
 
     // button to switch tables
     const switch_button = document.getElementById('switch_button');
-    switch_button.addEventListener('click', function(e) {
+    switch_button.addEventListener('click', function() {
         const table1 = document.getElementById('table1');
         const table2 = document.getElementById('table2');
         const tableID = document.getElementById('tableID');
@@ -522,8 +524,12 @@ window.loaderAPI.load((e, raw_table_data, raw_deadline_table_data, database) => 
 
     //button to refresh tables
     const refresh_button = document.getElementById('refresh_button');
-    refresh_button.addEventListener('click', async function(e) {
-        database['lineups'] = await window.loaderAPI.fetch_lineups();
+    refresh_button.addEventListener('click', async function() {
+        database['lineups'] = await window.loaderAPI.makeRequestAndParse({
+            url: window.loaderAPI.lineups_endpoint,
+            method: 'GET'
+        })
+
         drawTable(raw_table_data, database, options, 'table1')
         drawTable(raw_deadline_table_data, database, options, 'table2')
     })
