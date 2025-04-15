@@ -52,9 +52,9 @@ async function createWindow() {
             assists: await fetch_stats(AST_ENDPOINT(deadline, season)),
         },
         props: {
-            pts: await fetch_props(ids, 'player_points'),
-            reb: await fetch_props(ids, 'player_rebounds'),
-            ast: await fetch_props(ids, 'player_assists'),
+            //pts: await fetch_props(ids, 'player_points'),
+            //reb: await fetch_props(ids, 'player_rebounds'),
+            //ast: await fetch_props(ids, 'player_assists'),
         },
         play_types: await fetch_play_types('P', 'offensive'),
         play_types_defense: await fetch_play_types('T', 'defensive')

@@ -306,8 +306,21 @@ async function handleNameClick(e, database) {
         if (text.includes('GTD')) {
             text = text.substring(0, text.indexOf('GTD') - 1)
         }
+
+        const player_div = document.getElementById('player_info');
+        player_div.innerHTML = text;
+
+        // determine which set of stats to fetch for column chart
+        const table = document.getElementById('table1');
+        let date_from
+        if (table.style.display === 'none') {
+            date_from = '2/6/2025'
+        } else {
+            date_from = ''
+        }
+
         drawPieChart(text, database)
-        await drawColumnChart(text, database)
+        await drawColumnChart(text, date_from, database)
     }
 }
 
@@ -420,7 +433,7 @@ function drawPieChart(name, database) {
     chart.draw(datatable, options);
 }
 
-async function drawColumnChart(name, database) {
+async function drawColumnChart(name, date_from, database) {
     let team
     for (const group of database['lineups']) {
         if (group.includes(name)) {
@@ -442,7 +455,7 @@ async function drawColumnChart(name, database) {
     const id = database['stats']['assists'][index][0]
 
     const response = await window.loaderAPI.makeRequest({
-        url: window.loaderAPI.player_ast_endpoint('', '2024-25', id),
+        url: window.loaderAPI.player_ast_endpoint(date_from, '2024-25', id),
         method: 'GET',
         headers: window.loaderAPI.header,
     })
@@ -466,7 +479,6 @@ async function drawColumnChart(name, database) {
 }
 
 window.loaderAPI.load((e, raw_table_data, raw_deadline_table_data, database) => {
-    console.log(database)
     google.charts.load('current', {'packages':['table']});
     google.charts.load('current', {'packages':['corechart']});
 
@@ -492,12 +504,13 @@ window.loaderAPI.load((e, raw_table_data, raw_deadline_table_data, database) => 
     table1.addEventListener('click', async function(e) { await handleNameClick(e, database) })
     table2.addEventListener('click', async function(e) { await handleNameClick(e, database) })
 
-    // button to switch tables
+    // button to switch tables and column chart
     const switch_button = document.getElementById('switch_button');
     switch_button.addEventListener('click', function() {
         const table1 = document.getElementById('table1');
         const table2 = document.getElementById('table2');
         const tableID = document.getElementById('tableID');
+        const player_name = document.getElementById('player_info');
 
         if (table1.style.display === 'none') {
             const container = document.querySelector('#table2 .google-visualization-table > div');
@@ -506,6 +519,8 @@ window.loaderAPI.load((e, raw_table_data, raw_deadline_table_data, database) => 
             table1.style.setProperty('display', 'block');
             table2.style.setProperty('display', 'none');
             tableID.innerHTML = "Season stats"
+
+            drawColumnChart(player_name.innerHTML, '', database).then()
 
             const newContainer = document.querySelector('#table1 .google-visualization-table > div')
             newContainer.scrollTop = scrollState
@@ -516,6 +531,8 @@ window.loaderAPI.load((e, raw_table_data, raw_deadline_table_data, database) => 
             table1.style.setProperty('display', 'none');
             table2.style.setProperty('display', 'block');
             tableID.innerHTML = "Post trade deadline stats"
+
+            drawColumnChart(player_name.innerHTML, '2/6/2025', database).then()
 
             const newContainer = document.querySelector('#table2 .google-visualization-table > div')
             newContainer.scrollTop = scrollState
