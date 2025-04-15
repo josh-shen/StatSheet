@@ -153,7 +153,7 @@ function format_cells(data, database) {
         color = blend(data.getValue(i, 29), 0.03, 0.11, 0.08, 12.5)
         data.setProperty(i, 29, 'style', `background-color: ${color};`)
 
-        // %pts 0.1 - 0.2 - 0.3
+        // %ast 0.1 - 0.2 - 0.3
         color = blend(data.getValue(i, 30) , 0.1, 0.2, 0.1, 10)
         data.setProperty(i, 30, 'style', `background-color: ${color};`)
 
@@ -202,86 +202,101 @@ function drawTable(data, database, options, table_id) {
     table.draw(datatable, options);
 
     // allow cell editing
-    const tbody1 = document.querySelector(`#${table_id} tbody`);
-    tbody1.addEventListener('click', e => edit_cells(e, datatable, table, options, table_id))
+    const tbody = document.querySelector(`#${table_id} tbody`);
+    tbody.addEventListener('click', e => edit_cells(e))
 }
 
-function edit_cells(e, datatable, table, options, table_id) {
+function edit_cells(e) {
     const cell = e.target.closest('td')
     if (!cell) return
 
     const row = cell.parentElement;
-
     // allow cell editing only on player rows
     if (cell.cellIndex === 1 || cell.cellIndex === 15 || cell.cellIndex === 24) {
         if ((row.rowIndex - 6) % 6 !== 0) {
             cell.contentEditable = true
             // update projection values and formatting
-            cell.addEventListener('blur', function(e) { update_cell(e, datatable, table, options, table_id) })
+            cell.addEventListener('blur', function(e) { update_table(e, row.rowIndex, cell.cellIndex) })
         }
     }
 }
 
-function update_cell(sender, datatable, table, options, table_id){
-    // store current scroll state
-    const container = document.querySelector(`#${table_id} .google-visualization-table > div`);
-    const scrollState = container.scrollTop
-
-    const row = sender.target.parentNode.rowIndex - 1
+function update_cell(sender, tbody, r, c) {
+    const table_rows = tbody.childNodes;
+    const table_columns = table_rows[r - 1].childNodes;
     let color
-    if (sender.target.cellIndex === 1) {
-        datatable.setValue(row, 1, sender.target.innerHTML)
-        datatable.setValue(row, 2, sender.target.innerHTML - datatable.getValue(row, 5))
-        datatable.setValue(row, 3, sender.target.innerHTML - datatable.getValue(row, 6))
+    if (c === 1) {
+        table_columns[1].innerHTML = sender.target.innerHTML;
+        table_columns[2].innerHTML = (sender.target.innerHTML - table_columns[5].innerHTML).toFixed(1);
+        table_columns[3].innerHTML = (sender.target.innerHTML - table_columns[6].innerHTML).toFixed(1);
+
         if (sender.target.innerHTML === '-1') {
-            datatable.setProperty(row, 1, 'style', `background-color: ${cover}; color: ${cover};`)
-            datatable.setProperty(row, 2, 'style', `background-color: ${cover}; color: ${cover};`)
-            datatable.setProperty(row, 3, 'style', `background-color: ${cover}; color: ${cover};`)
+            table_columns[1].style.backgroundColor = cover;
+            table_columns[1].style.color = cover;
+
+            table_columns[2].style.backgroundColor = cover;
+            table_columns[2].style.color = cover;
+
+            table_columns[3].style.backgroundColor = cover;
+            table_columns[3].style.color = cover;
         } else {
-            datatable.setProperty(row, 1, 'style', 'background-color: rgb(255, 255, 255);')
+            table_columns[1].style.backgroundColor = "rgb(255, 255, 255)";
+            table_columns[1].style.color = "rgb(0, 0, 0)";
 
-            color = shade(datatable.getValue(row, 2) * -1, 0, 3, 0.33)
-            datatable.setProperty(row, 2, 'style', `background-color: ${color};`)
+            color = shade(table_columns[2].innerHTML * -1, 0, 3, 0.33)
+            table_columns[2].style.backgroundColor = color;
+            table_columns[2].style.color = "rgb(0, 0, 0)";
 
-            color = shade(datatable.getValue(row, 3) * -1, 0, 3, 0.33)
-            datatable.setProperty(row, 3, 'style', `background-color: ${color};`)
+            color = shade(table_columns[3].innerHTML * -1, 0, 3, 0.33)
+            table_columns[3].style.backgroundColor = color;
+            table_columns[3].style.color = "rgb(0, 0, 0)";
         }
-    } else if (sender.target.cellIndex === 15) {
-        datatable.setValue(row, 15, sender.target.innerHTML)
-        datatable.setValue(row, 16, sender.target.innerHTML - datatable.getValue(row, 19))
+    } else if (c === 15) {
+        table_columns[15].innerHTML = sender.target.innerHTML;
+        table_columns[16].innerHTML = (sender.target.innerHTML - table_columns[19].innerHTML).toFixed(1);
 
         if (sender.target.innerHTML === '-1') {
-            datatable.setProperty(row, 15, 'style', `background-color: ${cover}; color: ${cover};`)
-            datatable.setProperty(row, 16, 'style', `background-color: ${cover}; color: ${cover};`)
-        } else {
-            datatable.setProperty(row, 15, 'style', 'background-color: rgb(255, 255, 255);')
+            table_columns[15].style.backgroundColor = cover;
+            table_columns[15].style.color = cover;
 
-            color = shade(datatable.getValue(row, 16) * -1, 0, 3, 0.33)
-            datatable.setProperty(row, 16, 'style', `background-color: ${color};`)
+            table_columns[16].style.backgroundColor = cover;
+            table_columns[16].style.color = cover;
+        } else {
+            table_columns[15].style.backgroundColor = "rgb(255, 255, 255)";
+            table_columns[15].style.color = "rgb(0, 0, 0)";
+
+            color = shade(table_columns[16].innerHTML * -1, 0, 3, 0.33)
+            table_columns[16].style.backgroundColor = color;
+            table_columns[16].style.color = "rgb(0, 0, 0)";
         }
-    } else if (sender.target.cellIndex === 24) {
-        datatable.setValue(row, 24, sender.target.innerHTML)
-        datatable.setValue(row, 25, sender.target.innerHTML - datatable.getValue(row, 26))
+    } else if (c === 24) {
+        table_columns[24].innerHTML = sender.target.innerHTML;
+        table_columns[25].innerHTML = (sender.target.innerHTML - table_columns[26].innerHTML).toFixed(1);
 
         if (sender.target.innerHTML === '-1') {
-            datatable.setProperty(row, 24, 'style', `background-color: ${cover}; color: ${cover};`)
-            datatable.setProperty(row, 25, 'style', `background-color: ${cover}; color: ${cover};`)
-        } else {
-            datatable.setProperty(row, 24, 'style', 'background-color: rgb(255, 255, 255);')
+            table_columns[24].style.backgroundColor = cover;
+            table_columns[24].style.color = cover;
 
-            color = shade(datatable.getValue(row, 25) * -1, 0, 3, 0.33)
-            datatable.setProperty(row, 25, 'style', `background-color: ${color};`)
+            table_columns[25].style.backgroundColor = cover;
+            table_columns[25].style.color = cover;
+        } else {
+            table_columns[24].style.backgroundColor = "rgb(255, 255, 255)";
+            table_columns[24].style.color = "rgb(0, 0, 0)";
+
+            color = shade(table_columns[25].innerHTML * -1, 0, 3, 0.33)
+            table_columns[25].style.backgroundColor = color;
+            table_columns[25].style.color = "rgb(0, 0, 0)";
         }
     }
+}
 
-    table.draw(datatable, options)
+function update_table(sender, r, c){
+    const tbody1 = document.querySelector(`#table1 tbody`);
+    const tbody2 = document.querySelector(`#table2 tbody`);
 
-    // the table has been redrawn, so go back to the saved scrolled position
-    const newContainer = document.querySelector(`#${table_id} .google-visualization-table > div`)
-    newContainer.scrollTop = scrollState
-
-    const tbody = document.querySelector(`#${table_id} tbody`);
-    tbody.addEventListener('click', e => edit_cells(e, datatable, table, options))
+    // update cells in both tables
+    update_cell(sender, tbody1, r, c)
+    update_cell(sender, tbody2, r, c)
 }
 
 async function handleNameClick(e, database) {
