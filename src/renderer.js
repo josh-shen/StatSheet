@@ -63,7 +63,12 @@ function format_cells(data, database) {
         const spread = database.lineups[i][5]['spread']
         const total = database.lineups[i][5]['total']
 
-        data.setValue(row, 0, `<span>${favorite} -${spread}</span><span class="total">+/-${total}</span>`)
+        if (favorite === 'LIVE') {
+            data.setValue(row, 0, 'LIVE')
+        } else {
+            data.setValue(row, 0, `<span>${favorite} -${spread}</span><span class="total">+/-${total}</span>`)
+        }
+
         // spread
         if (database.lineups[i][5]['spread'] <= 3) {
             color = green

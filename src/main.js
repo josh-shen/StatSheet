@@ -1,3 +1,4 @@
+require('dotenv').config()
 const {app, ipcMain, BrowserWindow} = require('electron')
 const {join} = require('path')
 const axios = require('axios')
@@ -32,29 +33,27 @@ async function createWindow() {
     })
 
     const ids = await fetch_game_ids()
-    const season = '2024-25'
-    const deadline = '2/6/2025'
 
     let database = {
         lineups: await fetch_lineups(),
         stats: {
-            points: await fetch_stats(PTS_ENDPOINT('', season)),
-            adv: await fetch_stats(ADV_ENDPOINT('', season)),
-            usg: await fetch_stats(USG_ENDPOINT('', season)),
-            rebounds: await fetch_stats(REB_ENDPOINT('', season)),
-            assists: await fetch_stats(AST_ENDPOINT('', season)),
+            points: await fetch_stats(PTS_ENDPOINT('', process.env.SEASON)),
+            adv: await fetch_stats(ADV_ENDPOINT('', process.env.SEASON)),
+            usg: await fetch_stats(USG_ENDPOINT('', process.env.SEASON)),
+            rebounds: await fetch_stats(REB_ENDPOINT('', process.env.SEASON)),
+            assists: await fetch_stats(AST_ENDPOINT('', process.env.SEASON)),
         },
         stats_after_deadline: {
-            points: await fetch_stats(PTS_ENDPOINT(deadline, season)),
-            adv: await fetch_stats(ADV_ENDPOINT(deadline, season)),
-            usg: await fetch_stats(USG_ENDPOINT(deadline, season)),
-            rebounds: await fetch_stats(REB_ENDPOINT(deadline, season)),
-            assists: await fetch_stats(AST_ENDPOINT(deadline, season)),
+            points: await fetch_stats(PTS_ENDPOINT(process.env.TRADE_DEADLINE, process.env.SEASON)),
+            adv: await fetch_stats(ADV_ENDPOINT(process.env.TRADE_DEADLINE, process.env.SEASON)),
+            usg: await fetch_stats(USG_ENDPOINT(process.env.TRADE_DEADLINE, process.env.SEASON)),
+            rebounds: await fetch_stats(REB_ENDPOINT(process.env.TRADE_DEADLINE, process.env.SEASON)),
+            assists: await fetch_stats(AST_ENDPOINT(process.env.TRADE_DEADLINE, process.env.SEASON)),
         },
         props: {
-            //pts: await fetch_props(ids, 'player_points'),
-            //reb: await fetch_props(ids, 'player_rebounds'),
-            //ast: await fetch_props(ids, 'player_assists'),
+            pts: await fetch_props(ids, 'player_points'),
+            reb: await fetch_props(ids, 'player_rebounds'),
+            ast: await fetch_props(ids, 'player_assists'),
         },
         play_types: await fetch_play_types('P', 'offensive'),
         play_types_defense: await fetch_play_types('T', 'defensive')
