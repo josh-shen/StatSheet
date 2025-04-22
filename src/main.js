@@ -1,7 +1,7 @@
-require('dotenv').config()
 const {app, ipcMain, BrowserWindow} = require('electron')
 const {join} = require('path')
 const axios = require('axios')
+const config = require('../config.js')
 const {fetch_lineups, fetch_stats, fetch_play_types, fetch_game_ids, fetch_props} = require('./utils/fetchers.js')
 const {PTS_ENDPOINT, ADV_ENDPOINT, REB_ENDPOINT, AST_ENDPOINT, USG_ENDPOINT} = require('./utils/endpoints.js')
 const {parse_lineups, create_table} = require('./utils/utils.js')
@@ -37,18 +37,18 @@ async function createWindow() {
     let database = {
         lineups: await fetch_lineups(),
         stats: {
-            points: await fetch_stats(PTS_ENDPOINT('', process.env.SEASON)),
-            adv: await fetch_stats(ADV_ENDPOINT('', process.env.SEASON)),
-            usg: await fetch_stats(USG_ENDPOINT('', process.env.SEASON)),
-            rebounds: await fetch_stats(REB_ENDPOINT('', process.env.SEASON)),
-            assists: await fetch_stats(AST_ENDPOINT('', process.env.SEASON)),
+            points: await fetch_stats(PTS_ENDPOINT('', config.SEASON)),
+            adv: await fetch_stats(ADV_ENDPOINT('', config.SEASON)),
+            usg: await fetch_stats(USG_ENDPOINT('', config.SEASON)),
+            rebounds: await fetch_stats(REB_ENDPOINT('', config.SEASON)),
+            assists: await fetch_stats(AST_ENDPOINT('', config.SEASON)),
         },
         stats_after_deadline: {
-            points: await fetch_stats(PTS_ENDPOINT(process.env.TRADE_DEADLINE, process.env.SEASON)),
-            adv: await fetch_stats(ADV_ENDPOINT(process.env.TRADE_DEADLINE, process.env.SEASON)),
-            usg: await fetch_stats(USG_ENDPOINT(process.env.TRADE_DEADLINE, process.env.SEASON)),
-            rebounds: await fetch_stats(REB_ENDPOINT(process.env.TRADE_DEADLINE, process.env.SEASON)),
-            assists: await fetch_stats(AST_ENDPOINT(process.env.TRADE_DEADLINE, process.env.SEASON)),
+            points: await fetch_stats(PTS_ENDPOINT(config.TRADE_DEADLINE, config.SEASON)),
+            adv: await fetch_stats(ADV_ENDPOINT(config.TRADE_DEADLINE, config.SEASON)),
+            usg: await fetch_stats(USG_ENDPOINT(config.TRADE_DEADLINE, config.SEASON)),
+            rebounds: await fetch_stats(REB_ENDPOINT(config.TRADE_DEADLINE, config.SEASON)),
+            assists: await fetch_stats(AST_ENDPOINT(config.TRADE_DEADLINE, config.SEASON)),
         },
         props: {
             pts: await fetch_props(ids, 'player_points'),
