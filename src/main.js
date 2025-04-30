@@ -14,7 +14,7 @@ async function createWindow() {
         frame: false,
         alwaysOnTop: true
     });
-    load_window.loadFile(join(__dirname, './loading.html'))
+    load_window.loadFile(join(__dirname, './loading/loading.html'))
         .then(() => {
             load_window.center()
         })

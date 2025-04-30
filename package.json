@@ -1,5 +1,5 @@
 {
-  "name": "stats",
+  "name": "stat-sheet",
   "version": "1.0.0",
   "author": "Joshua Shen",
   "description": "A NBA stats and betting lines compiler and visualizer",
