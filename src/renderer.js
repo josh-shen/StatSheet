@@ -39,6 +39,8 @@ function blend(value, low, mid, floor, scale) {
     }
 }
 
+let data_cache = {}
+
 function format_cells(data, database) {
     const r = data.getNumberOfRows()
     let color
@@ -466,19 +468,32 @@ async function drawColumnChart(name, date_from, database) {
     const index = database['stats']['assists'].findIndex(element => element.includes(name))
     const id = database['stats']['assists'][index][0]
 
-    const response = await window.loaderAPI.makeRequest({
-        url: window.loaderAPI.player_ast_endpoint(date_from, '2024-25', id),
-        method: 'GET',
-        headers: window.loaderAPI.header,
-    })
+    // check cache if data already exists before fetching
+    if (name in data_cache && date_from in data_cache[name]) {
+        dataset = data_cache[name][date_from]
+    } else {
+        const response = await window.loaderAPI.makeRequest({
+            url: window.loaderAPI.player_ast_endpoint(date_from, '2024-25', id),
+            method: 'GET',
+            headers: window.loaderAPI.header,
+        })
 
-    for (const n of response['resultSets'][0]['rowSet']) {
-        if (n[4] !== team || n[11] === 0) continue
-        dataset.push([n[7], n[11]])
+        for (const n of response['resultSets'][0]['rowSet']) {
+            if (n[4] !== team || n[11] === 0) continue
+            dataset.push([n[7], n[11]])
+        }
+        dataset.sort(function(a, b) {
+            return a[1] - b[1];
+        });
+
+        // add dataset for player to cache
+        if (!data_cache[name]) {
+            data_cache[name] = {[date_from]: dataset};
+        } else {
+            data_cache[name][date_from] = dataset;
+        }
     }
-    dataset.sort(function(a, b) {
-        return a[1] - b[1];
-    });
+
     const datatable = google.visualization.arrayToDataTable(dataset, true)
     const options = {
         chartArea: {width: '80%', height: '70%'},

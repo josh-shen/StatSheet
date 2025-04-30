@@ -43,7 +43,7 @@ async function fetch_play_types(p_t, o_d, season_type) {
             const data = await response.data
 
             // set a small timeout to avoid rate limits
-            await new Promise(resolve => setTimeout(resolve, 500));
+            await new Promise(resolve => setTimeout(resolve, 1000));
             res[playType] = data["resultSets"][0]['rowSet']
         } catch (error) {
             const error_info = {
