@@ -55,8 +55,9 @@ async function createWindow() {
             reb: await fetch_props(ids, 'player_rebounds'),
             ast: await fetch_props(ids, 'player_assists'),
         },
-        play_types: await fetch_play_types('P', 'offensive'),
-        play_types_defense: await fetch_play_types('T', 'defensive')
+        play_types: await fetch_play_types('P', 'offensive', 'Regular%20Season'),
+        play_types_playoffs: await fetch_play_types('P', 'offensive', 'Playoffs'),
+        play_types_defense: await fetch_play_types('T', 'defensive', 'Regular%20Season')
     }
 
     const raw_table_data = create_table(database.lineups, database.stats, database.props)
@@ -67,7 +68,11 @@ async function createWindow() {
             const response = await axios(options);
             return response.data
         } catch (error) {
-            console.log(error)
+            const error_info = {
+                errno: error.errno,
+                code: error.code,
+            }
+            console.log(error_info)
         }
     })
 
@@ -80,7 +85,11 @@ async function createWindow() {
 
             return parse_lineups(tables)
         } catch (error) {
-            console.log(error)
+            const error_info = {
+                errno: error.errno,
+                code: error.code,
+            }
+            console.log(error_info)
         }
     })
 

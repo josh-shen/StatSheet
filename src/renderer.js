@@ -324,12 +324,13 @@ async function handleNameClick(e, database) {
             date_from = ''
         }
 
-        drawPieChart(text, database)
+        drawPieChart(text, database, 'piechart1')
+        drawPieChart(text, database, 'piechart2')
         await drawColumnChart(text, date_from, database)
     }
 }
 
-function drawPieChart(name, database) {
+function drawPieChart(name, database, pie_id) {
     const dataset = [
         ['Isolation', 0],
         ['Transition', 0],
@@ -346,7 +347,13 @@ function drawPieChart(name, database) {
     let player_team
 
     // set slice values
-    for (const [key, value] of Object.entries(database.play_types)) {
+    let data
+    if (pie_id === 'piechart1') {
+        data = database.play_types
+    } else {
+        data = database.play_types_playoffs
+    }
+    for (const [key, value] of Object.entries(data)) {
         for (const player of value) if (player.includes(name)) {
             player_team = player[4]
             switch (key) {
@@ -434,7 +441,7 @@ function drawPieChart(name, database) {
         chartArea: {width: '90%', height: '90%'},
     }
 
-    const chart = new google.visualization.PieChart(document.getElementById('piechart'));
+    const chart = new google.visualization.PieChart(document.getElementById(pie_id));
     chart.draw(datatable, options);
 }
 
@@ -499,10 +506,6 @@ window.loaderAPI.load((e, raw_table_data, raw_deadline_table_data, database) => 
     google.charts.setOnLoadCallback(function() { drawTable(raw_table_data, database, options, 'table1') });
     google.charts.setOnLoadCallback(function() { drawTable(raw_deadline_table_data, database, options, 'table2') });
 
-    // show which table is currently displayed (season stats is displayed on default)
-    const table_indicator = document.querySelector('#tableID')
-    table_indicator.innerHTML = "Season stats"
-
     // add click event listener to table cells
     const table1 = document.getElementById('table1');
     const table2 = document.getElementById('table2');
@@ -510,11 +513,11 @@ window.loaderAPI.load((e, raw_table_data, raw_deadline_table_data, database) => 
     table2.addEventListener('click', async function(e) { await handleNameClick(e, database) })
 
     // button to switch tables and column chart
-    const switch_button = document.getElementById('switch_button');
-    switch_button.addEventListener('click', function() {
+    const switch_table = document.getElementById('switch_table');
+    switch_table.innerHTML = "Full Season stats" // season stats are displayed by default
+    switch_table.addEventListener('click', function() {
         const table1 = document.getElementById('table1');
         const table2 = document.getElementById('table2');
-        const tableID = document.getElementById('tableID');
         const player_name = document.getElementById('player_info');
 
         if (table1.style.display === 'none') {
@@ -523,7 +526,7 @@ window.loaderAPI.load((e, raw_table_data, raw_deadline_table_data, database) => 
 
             table1.style.setProperty('display', 'block');
             table2.style.setProperty('display', 'none');
-            tableID.innerHTML = "Season stats"
+            switch_table.innerHTML = "Season stats"
 
             drawColumnChart(player_name.innerHTML, '', database).then()
 
@@ -535,7 +538,7 @@ window.loaderAPI.load((e, raw_table_data, raw_deadline_table_data, database) => 
 
             table1.style.setProperty('display', 'none');
             table2.style.setProperty('display', 'block');
-            tableID.innerHTML = "Post trade deadline stats"
+            switch_table.innerHTML = "Post trade deadline stats"
 
             drawColumnChart(player_name.innerHTML, '2/6/2025', database).then()
 
@@ -544,7 +547,7 @@ window.loaderAPI.load((e, raw_table_data, raw_deadline_table_data, database) => 
         }
     })
 
-    //button to refresh tables
+    // button to refresh tables
     const refresh_button = document.getElementById('refresh_button');
     refresh_button.addEventListener('click', async function() {
         database['lineups'] = await window.loaderAPI.makeRequestAndParse({
@@ -554,6 +557,24 @@ window.loaderAPI.load((e, raw_table_data, raw_deadline_table_data, database) => 
 
         drawTable(raw_table_data, database, options, 'table1')
         drawTable(raw_deadline_table_data, database, options, 'table2')
+    })
+
+    // button to switch pie chart
+    const switch_pie = document.getElementById('switch_pie');
+    switch_pie.innerHTML = "Regular Season"
+    switch_pie.addEventListener('click', function() {
+        const piechart1 = document.getElementById('piechart1');
+        const piechart2 = document.getElementById('piechart2');
+
+        if (piechart1.style.visibility === 'hidden') {
+            piechart1.style.setProperty('visibility', 'visible');
+            piechart2.style.setProperty('visibility', 'hidden');
+            switch_pie.innerHTML = "Regular Season"
+        } else {
+            piechart1.style.setProperty('visibility', 'hidden');
+            piechart2.style.setProperty('visibility', 'visible');
+            switch_pie.innerHTML = "Playoffs"
+        }
     })
 })
 

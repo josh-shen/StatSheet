@@ -25,21 +25,27 @@ function AST_ENDPOINT(date_from='', season) {
 function USG_ENDPOINT(date_from='', season) {
     return `https://stats.nba.com/stats/leaguedashplayerstats?DateFrom=${date_from}&DateTo=&LastNGames=0&LeagueID=00&MeasureType=Usage&Month=0&OpponentTeamID=0&PORound=0&PaceAdjust=N&PerMode=PerGame&Period=0&PlusMinus=N&Rank=N&Season=${season}&SeasonType=Regular%20Season&TeamID=0`
 }
-function PLAYTYPE_ENDPOINT(playType, p_t, o_d) {
-    return `https://stats.nba.com/stats/synergyplaytypes?LeagueID=00&PerMode=PerGame&PlayType=${playType}&PlayerOrTeam=${p_t}&SeasonType=Regular%20Season&SeasonYear=2024-25&TypeGrouping=${o_d}`
+function PLAYTYPE_ENDPOINT(playType, p_t, o_d, season_type) {
+    return `https://stats.nba.com/stats/synergyplaytypes?LeagueID=00&PerMode=PerGame&PlayType=${playType}&PlayerOrTeam=${p_t}&SeasonType=${season_type}&SeasonYear=2024-25&TypeGrouping=${o_d}`
 }
 function PLAYER_AST_ENDPOINT(date_from='', season, playerID) {
     return `https://stats.nba.com/stats/playerdashptpass?DateFrom=${date_from}&DateTo=&LastNGames=0&LeagueID=00&Month=0&OpponentTeamID=0&PORound=0&PerMode=PerGame&Period=0&PlayerID=${playerID}&Season=${season}&SeasonType=Regular%20Season&TeamID=0`
 }
 
+let key_index = Math.floor(Math.random() * config.API_KEYS.length)
+
 function GAME_ID_ENDPOINT() {
     const time = new Date()
     time.setHours(24, 0, 0, 0);
 
-    return `https://api.the-odds-api.com/v4/sports/basketball_nba/events?apiKey=${config.API_KEY}&commenceTimeTo=${time.toISOString().split('.')[0]+'Z'}`
+    key_index = (key_index + 1) % config.API_KEYS.length;
+
+    return `https://api.the-odds-api.com/v4/sports/basketball_nba/events?apiKey=${config.API_KEYS[key_index]}&commenceTimeTo=${time.toISOString().split('.')[0]+'Z'}`
 }
 function ODDS_ENDPOINT(id, prop) {
-    return `https://api.the-odds-api.com/v4/sports/basketball_nba/events/${id}/odds?apiKey=${config.API_KEY}&bookmakers=draftkings&markets=${prop}&oddsFormat=american`
+    key_index = (key_index + 1)  % config.API_KEYS.length;
+
+    return `https://api.the-odds-api.com/v4/sports/basketball_nba/events/${id}/odds?apiKey=${config.API_KEYS[key_index]}&bookmakers=draftkings&markets=${prop}&oddsFormat=american`
 }
 
 module.exports = {

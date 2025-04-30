@@ -106,7 +106,7 @@ td:focus {
     z-index: 50;
 }
 
-#piechart {
+#piechart1 {
     height: 46%;
     width: 50%;
     position: absolute;
@@ -114,6 +114,16 @@ td:focus {
     left: 0;
     padding: 15px; /* Adds space inside the div */
     box-sizing: border-box; /* Ensures padding doesn't increase the total size */
+}
+#piechart2 {
+    height: 46%;
+    width: 50%;
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    padding: 15px; /* Adds space inside the div */
+    box-sizing: border-box; /* Ensures padding doesn't increase the total size */
+    visibility: hidden;
 }
 
 #columnchart {

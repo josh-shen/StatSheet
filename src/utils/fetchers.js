@@ -10,7 +10,11 @@ async function fetch_lineups() {
 
         return parse_lineups(tables)
     } catch (error) {
-        console.error(error);
+        const error_info = {
+            errno: error.errno,
+            code: error.code,
+        }
+        console.log(error_info)
     }
 }
 
@@ -21,22 +25,32 @@ async function fetch_stats(url) {
 
         return data['resultSets'][0]['rowSet']
     } catch (error) {
-        console.log(error)
+        const error_info = {
+            errno: error.errno,
+            code: error.code,
+        }
+        console.log(error_info)
     }
 }
 
-async function fetch_play_types(p_t, o_d) {
+async function fetch_play_types(p_t, o_d, season_type) {
     const play_types = ['Isolation', 'Transition', 'PRBallHandler', 'PRRollMan', 'Postup', 'Spotup', 'Handoff', 'Cut', 'OffScreen', 'OffRebound', 'Misc']
     const res = {}
 
     for (const playType of play_types) {
         try {
-            const response = await axios.get(PLAYTYPE_ENDPOINT(playType, p_t, o_d), {headers: header})
+            const response = await axios.get(PLAYTYPE_ENDPOINT(playType, p_t, o_d, season_type), {headers: header})
             const data = await response.data
 
+            // set a small timeout to avoid rate limits
+            await new Promise(resolve => setTimeout(resolve, 500));
             res[playType] = data["resultSets"][0]['rowSet']
         } catch (error) {
-            console.log(error)
+            const error_info = {
+                errno: error.errno,
+                code: error.code,
+            }
+            console.log(error_info)
         }
     }
 
@@ -53,7 +67,11 @@ async function fetch_game_ids() {
 
         return ids
     } catch (error) {
-        console.log(error)
+        const error_info = {
+            errno: error.errno,
+            code: error.code,
+        }
+        console.log(error_info)
     }
 }
 
@@ -76,7 +94,11 @@ async function fetch_props(ids, prop) {
                 }
             }
         } catch (error) {
-            console.log(error)
+            const error_info = {
+                errno: error.errno,
+                code: error.code,
+            }
+            console.log(error_info)
         }
     }
     return prop_lines
