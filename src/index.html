@@ -8,18 +8,25 @@
         <link rel="stylesheet" href="styles.css">
     </head>
     <body>
-        <div id="table_container">
-            <div id="table1"></div>
-            <div id="table2"></div>
-        </div>
-        <div id="piechart1"></div>
-        <div id="piechart2"></div>
-        <div id="columnchart"></div>
-        <div id="controls">
+        <div id="top_bar">
             <button id="refresh_button">Refresh</button>
             <button id="switch_table"></button>
-            <button id="switch_pie"></button>
-            <div id="player_info"></div>
+        </div>
+        <div id="main">
+            <div id="table_container">
+                <div id="table1"></div>
+                <div id="table2" style="display: none"></div>
+            </div>
+            <div id="charts_container">
+                <button id="toggle_charts">=</button>
+                <div id="piechart1"></div>
+                <div id="piechart2" style="visibility: hidden"></div>
+                <div id="columnchart"></div>
+                <div id="controls">
+                    <button id="switch_pie"></button>
+                    <div id="player_info"></div>
+                </div>
+            </div>
         </div>
     </body>
 </html>

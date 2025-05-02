@@ -1,9 +1,11 @@
 html, body {
     height: 100%;
-}
-body {
     margin: 0;
+    padding: 0;
+    font: 10pt arial;
+    background-color: #F0F4F9;
 }
+
 div::-webkit-scrollbar {
     display: none;
 }
@@ -42,17 +44,43 @@ div::-webkit-scrollbar {
     --was: #002B5C; --was-alternate: #E31837;
 }
 
-#table_container {
-    height: 54%;
+#top_bar {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    padding: 10px;
+    height: 2rem;
+}
+.game_schedule {
+    border-radius: 3px;
+    padding: 10px;
+    background-color: #EEE;
+}
+
+#main {
+    display: flex;
+    flex-direction: column;
+    height: calc(100vh - 2rem - 20px);
     position: relative;
+    align-items: center;
+    overflow: hidden;
 }
-#table1 {
+
+#table_container {
     height: 100%;
+    position: relative;
+    padding: 10px;
+    transition: height 0.3s ease-in-out;
 }
-#table2 {
+#table_container.expanded {
+    height: 50%;
+}
+
+#table1, #table2 {
     height: 100%;
-    display: none;
+    overflow-y: auto;
 }
+
 .headerCell {
     visibility: hidden;
 }
@@ -106,41 +134,54 @@ td:focus {
     z-index: 50;
 }
 
-#piechart1 {
-    height: 46%;
-    width: 50%;
+#charts_container {
+    display: flex;
+    height: 50%;
+    width: calc(100% - 20px);
+    border-radius: 14px 14px 0 0;
+    background-color: #FFF;
     position: absolute;
     bottom: 0;
-    left: 0;
-    padding: 15px; /* Adds space inside the div */
-    box-sizing: border-box; /* Ensures padding doesn't increase the total size */
+    box-sizing: border-box;
+    overflow:  hidden;
+    transition: transform 0.3s ease-in-out;
+    transform: translateY(calc(100% - 2rem));
 }
-#piechart2 {
-    height: 46%;
+#charts_container.expanded {
+    transform: translateY(0);
+}
+
+#piechart1, #piechart2 {
     width: 50%;
+    height: 100%;
+    padding: 15px;
     position: absolute;
-    bottom: 0;
+    top: 0;
     left: 0;
-    padding: 15px; /* Adds space inside the div */
-    box-sizing: border-box; /* Ensures padding doesn't increase the total size */
-    visibility: hidden;
+    box-sizing: border-box;
 }
 
 #columnchart {
-    height: 46%;
     width: 50%;
+    height: 100%;
+    padding: 15px;
     position: absolute;
-    bottom: 0;
+    top: 0;
     right: 0;
-    padding: 15px; /* Adds space inside the div */
-    box-sizing: border-box; /* Ensures padding doesn't increase the total size */
+    box-sizing: border-box;
+}
+
+#toggle_charts {
+    width: calc(100% + 20px);
+    height: 2rem;
+    cursor: pointer;
+    z-index: 10;
+    border: none;
+    background-color: #FFF;
 }
 
 #controls {
-    position: fixed;
+    position: absolute;
+    z-index: 10;
     bottom: 0;
-    left: 0;
-    padding: 10px;
-    display: flex;
-    gap: 10px; /* Space between buttons */
 }

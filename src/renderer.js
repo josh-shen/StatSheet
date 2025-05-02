@@ -41,6 +41,26 @@ function blend(value, low, mid, floor, scale) {
 
 let data_cache = {}
 
+function create_schedule_bar(lineups) {
+    const container = document.getElementById('top_bar')
+
+    lineups.forEach((game) => {
+        console.log(game, lineups)
+        const schedule_div = document.createElement('div')
+        if (game[5]['favorite'] === 'LIVE') {
+            schedule_div.textContent = `${game[5]['away']} @ ${game[5]['home']} LIVE`
+        } else {
+            schedule_div.textContent = `
+            ${game[5]['away']} @ ${game[5]['home']}
+            ${game[5]['favorite']} -${game[5]['spread']} O/U${game[5]['total']}
+            ${game[5]['start_time']}
+            `
+        }
+        schedule_div.className = 'game_schedule'
+        container.appendChild(schedule_div)
+    })
+}
+
 function format_cells(data, database) {
     const r = data.getNumberOfRows()
     let color
@@ -309,6 +329,11 @@ function update_table(sender, r, c){
 async function handleNameClick(e, database) {
     const target = e.target
     if (target.classList.contains('name_cell')) {
+        const table_container = document.getElementById('table_container')
+        const charts_container = document.getElementById('charts_container')
+        table_container.classList.add('expanded')
+        charts_container.classList.add('expanded')
+
         let text = target.textContent
         if (text.includes('GTD')) {
             text = text.substring(0, text.indexOf('GTD') - 1)
@@ -440,6 +465,8 @@ function drawPieChart(name, database, pie_id) {
             10: {color: percentile[dataset[10][0]]}
         },
         legend: 'none',
+        width: '100%',
+        height: '100%',
         chartArea: {width: '90%', height: '90%'},
     }
 
@@ -496,6 +523,8 @@ async function drawColumnChart(name, date_from, database) {
 
     const datatable = google.visualization.arrayToDataTable(dataset, true)
     const options = {
+        width: '100%',
+        height: '100%',
         chartArea: {width: '80%', height: '70%'},
         legend: 'none',
         colors: [color]
@@ -506,6 +535,18 @@ async function drawColumnChart(name, date_from, database) {
 }
 
 window.loaderAPI.load((e, raw_table_data, raw_deadline_table_data, database) => {
+    // create schedule bar
+    create_schedule_bar(database['lineups'])
+
+    // chart container toggle button
+    const toggle_button = document.getElementById('toggle_charts')
+    const table_container = document.getElementById('table_container')
+    const charts_container = document.getElementById('charts_container')
+    toggle_button.addEventListener('click', function () {
+        table_container.classList.toggle('expanded')
+        charts_container.classList.toggle('expanded')
+    })
+
     google.charts.load('current', {'packages':['table']});
     google.charts.load('current', {'packages':['corechart']});
 
@@ -516,7 +557,7 @@ window.loaderAPI.load((e, raw_table_data, raw_deadline_table_data, database) => 
         cssClassNames: {tableCell: 'tableCell', /*headerCell: 'headerCell'*/},
         sort: 'disable',
         width: '100%',
-        height: '100%'
+        //height: '100%'
     }
     google.charts.setOnLoadCallback(function() { drawTable(raw_table_data, database, options, 'table1') });
     google.charts.setOnLoadCallback(function() { drawTable(raw_deadline_table_data, database, options, 'table2') });
@@ -591,6 +632,14 @@ window.loaderAPI.load((e, raw_table_data, raw_deadline_table_data, database) => 
             switch_pie.innerHTML = "Playoffs"
         }
     })
+
+    /*
+    make charts responsive
+    window.addEventListener('resize', function() {
+        drawPieChart();
+        drawColumnChart();
+    });
+     */
 })
 
 /*
