@@ -1,48 +1,46 @@
 const red = 'rgb(222, 101, 96)'
-const orange = 'rgb(242, 163, 88)'
 const yellow = 'rgb(253, 207, 84)'
 const green = 'rgb(72, 176, 120)'
 const cover = 'rgb(83, 83, 83)'
-//https://stackoverflow.com/questions/5560248/programmatically-lighten-or-darken-a-hex-color-or-rgb-and-blend-colors
-const RGB_Linear_Shade=(p,c)=>{
-    var i=parseInt,r=Math.round,[a,b,c,d]=c.split(","),P=p<0,t=P?0:255*p,P=P?1+p:1-p;
-    return"rgb"+(d?"a(":"(")+r(i(a[3]==="a"?a.slice(5):a.slice(4))*P+t)+","+r(i(b)*P+t)+","+r(i(c)*P+t)+(d?","+d:")");
-}
-const RGB_Log_Blend=(p,c0,c1)=>{
-    var i=parseInt,r=Math.round,P=1-p,[a,b,c,d]=c0.split(","),[e,f,g,h]=c1.split(","),x=d||h,j=x?","+(!d?h:!h?d:r((parseFloat(d)*P+parseFloat(h)*p)*1000)/1000+")"):")";
-    return"rgb"+(x?"a(":"(")+r((P*i(a[3]==="a"?a.slice(5):a.slice(4))**2+p*i(e[3]==="a"?e.slice(5):e.slice(4))**2)**0.5)+","+r((P*i(b)**2+p*i(f)**2)**0.5)+","+r((P*i(c)**2+p*i(g)**2)**0.5)+j;
-}
-function shade(value, mid, high, scale) {
-    if (!value) {
-        return 'rgba(0,0,0,0)'
-    }
+// https://stackoverflow.com/questions/5560248/programmatically-lighten-or-darken-a-hex-color-or-rgb-and-blend-colors
+const RGB_Linear_Shade=(value, mid, high, scale)=>{
+    // do not shade empty cells
+    if (!value && value !== 0) return 'rgba(0,0,0,0)'
+
+    let p, c0
 
     if (value > mid) {
-        const p = 1 - Math.min(high, (value - mid)) * scale
-        return RGB_Linear_Shade(p, green)
+        p = 1 - Math.min(high, (value - mid)) * scale
+        c0 = green
     } else {
-        const p = 1 - Math.min(high, (mid - value)) * scale
-        return RGB_Linear_Shade(p, red)
+        p = 1 - Math.min(high, (mid - value)) * scale
+        c0 = red
     }
+
+    let i=parseInt,r=Math.round,[a,b,c,d]=c0.split(","),n=p<0,t=n?0:255*p,P=n?1+p:1-p;
+    return"rgb"+(d?"a(":"(")+r(i(a[3]==="a"?a.slice(5):a.slice(4))*P+t)+","+r(i(b)*P+t)+","+r(i(c)*P+t)+(d?","+d:")");
 }
-function blend(value, low, mid, floor, scale) {
+const RGB_Log_Blend=(value, low, mid, floor, scale)=>{
     if (!value) {
         return 'rgba(0,0,0,0)'
     }
-
+    let p, c0, c1
     if (value < mid) {
-        const p = Math.max(0, value - low) * scale
-        return RGB_Log_Blend(p, red, yellow)
+        p = Math.max(0, value - low) * scale
+        c0 = red; c1 = yellow
     } else {
-        const p = Math.min(floor, value - mid) * scale
-        return RGB_Log_Blend(p, yellow, green)
+        p = Math.min(floor, value - mid) * scale
+        c0 = yellow; c1 = green
     }
+
+    let i=parseInt,r=Math.round,P=1-p,[a,b,c,d]=c0.split(","),[e,f,g,h]=c1.split(","),x=d||h,j=x?","+(!d?h:!h?d:r((parseFloat(d)*P+parseFloat(h)*p)*1000)/1000+")"):")";
+    return"rgb"+(x?"a(":"(")+r((P*i(a[3]==="a"?a.slice(5):a.slice(4))**2+p*i(e[3]==="a"?e.slice(5):e.slice(4))**2)**0.5)+","+r((P*i(b)**2+p*i(f)**2)**0.5)+","+r((P*i(c)**2+p*i(g)**2)**0.5)+j;
 }
 
 let data_cache = {}
 
-function create_schedule_bar(lineups) {
-    const container = document.getElementById('top_bar')
+function createScheduleBar(lineups) {
+    const top_bar = document.getElementById('top_bar')
 
     lineups.forEach((game) => {
         const matchup_card = document.createElement('div')
@@ -79,11 +77,11 @@ function create_schedule_bar(lineups) {
         matchup_card.style.borderLeft = `5px solid var(--${game[5]['away'].toLowerCase()}-alternate)`
         matchup_card.style.borderRight = `5px solid var(--${game[5]['home'].toLowerCase()})`
 
-        container.appendChild(matchup_card)
+        top_bar.appendChild(matchup_card)
     })
 }
 
-function format_cells(table_index, data, database) {
+function formatCells(table_index, data, database) {
     const r = data.getNumberOfRows()
     let color
 
@@ -133,7 +131,7 @@ function format_cells(table_index, data, database) {
         const mid = (max + min) / 2
         for (let j = 0; j < 11; j++) {
             const r = j
-            const color = shade(data.getValue(r, c), mid, max, 1/(max-mid))
+            const color = RGB_Linear_Shade(data.getValue(r, c), mid, max, 1/(max-mid))
             data.setProperty(r, c, 'style', `background-color: ${color};`)
         }
     }
@@ -141,43 +139,43 @@ function format_cells(table_index, data, database) {
     // full stats colors
     for (let i = 0; i < r; ++i) {
         // min/game 18 - 28 - 38
-        color = blend(data.getValue(i, 4), 18, 28, 10, 0.1)
+        color = RGB_Log_Blend(data.getValue(i, 4), 18, 28, 10, 0.1)
         data.setProperty(i, 4, 'style', `background-color: ${color};`)
 
         // fg% 0.34 - 0.44 - 0.54
-        color = blend(data.getValue(i, 8), 0.34, 0.44, 0.1, 10)
+        color = RGB_Log_Blend(data.getValue(i, 8), 0.34, 0.44, 0.1, 10)
         data.setProperty(i, 8, 'style', `background-color: ${color};`)
 
         // 3p% 0.23 - 0.33 - 0.43
-        color = blend(data.getValue(i, 10), 0.23, 0.33, 0.1, 10)
+        color = RGB_Log_Blend(data.getValue(i, 10), 0.23, 0.33, 0.1, 10)
         data.setProperty(i, 10, 'style', `background-color: ${color};`)
 
         // ft% 0.71 - 0.81 - 0.91
-        color = blend(data.getValue(i, 12), 0.71, 0.81, 0.1, 10)
+        color = RGB_Log_Blend(data.getValue(i, 12), 0.71, 0.81, 0.1, 10)
         data.setProperty(i, 12, 'style', `background-color: ${color};`)
 
         // usg% 0.1 - 0.2 - 0.3
-        color = blend(data.getValue(i, 13) , 0.1, 0.2, 0.1, 10)
+        color = RGB_Log_Blend(data.getValue(i, 13) , 0.1, 0.2, 0.1, 10)
         data.setProperty(i, 13, 'style', `background-color: ${color};`)
 
         // %pts 0.1 - 0.2 - 0.3
-        color = blend(data.getValue(i, 14) , 0.1, 0.2, 0.1, 10)
+        color = RGB_Log_Blend(data.getValue(i, 14) , 0.1, 0.2, 0.1, 10)
         data.setProperty(i, 14, 'style', `background-color: ${color};`)
 
         // %reb 0.1 - 0.2 - 0.3
-        color = blend(data.getValue(i, 23) , 0.1, 0.2, 0.1, 10)
+        color = RGB_Log_Blend(data.getValue(i, 23) , 0.1, 0.2, 0.1, 10)
         data.setProperty(i, 23, 'style', `background-color: ${color};`)
 
         // passes 20 - 40 - 60 (r, c=24)
-        color = blend(data.getValue(i, 28), 20, 40, 20, 0.05)
+        color = RGB_Log_Blend(data.getValue(i, 28), 20, 40, 20, 0.05)
         data.setProperty(i, 28, 'style', `background-color: ${color};`)
 
         // ast/pass 0.03 - 0.11 - 0.19
-        color = blend(data.getValue(i, 29), 0.03, 0.11, 0.08, 12.5)
+        color = RGB_Log_Blend(data.getValue(i, 29), 0.03, 0.11, 0.08, 12.5)
         data.setProperty(i, 29, 'style', `background-color: ${color};`)
 
         // %ast 0.1 - 0.2 - 0.3
-        color = blend(data.getValue(i, 30) , 0.1, 0.2, 0.1, 10)
+        color = RGB_Log_Blend(data.getValue(i, 30) , 0.1, 0.2, 0.1, 10)
         data.setProperty(i, 30, 'style', `background-color: ${color};`)
 
         // cover -1 points
@@ -187,11 +185,11 @@ function format_cells(table_index, data, database) {
             data.setProperty(i, 3, 'style', `background-color: ${cover}; color: ${cover}`)
         } else {
             // line points average difference
-            color = shade(data.getValue(i, 2) * -1, 0, 3, 0.33)
+            color = RGB_Linear_Shade(data.getValue(i, 2) * -1, 0, 3, 0.33)
             data.setProperty(i, 2, 'style', `background-color: ${color};`)
 
             // line projected difference
-            color = shade(data.getValue(i, 3) * -1, 0, 3, 0.33)
+            color = RGB_Linear_Shade(data.getValue(i, 3) * -1, 0, 3, 0.33)
             data.setProperty(i, 3, 'style', `background-color: ${color};`)
         }
         // cover -1 rebounds
@@ -200,7 +198,7 @@ function format_cells(table_index, data, database) {
             data.setProperty(i, 16, 'style', `background-color: ${cover}; color: ${cover}`)
         } else {
             // line rebounds average difference
-            color = shade(data.getValue(i, 16) * -1, 0, 3, 0.33)
+            color = RGB_Linear_Shade(data.getValue(i, 16) * -1, 0, 3, 0.33)
             data.setProperty(i, 16, 'style', `background-color: ${color};`)
         }
         // cover -1 assists
@@ -209,19 +207,19 @@ function format_cells(table_index, data, database) {
             data.setProperty(i, 25, 'style', `background-color: ${cover}; color: ${cover}`)
         } else {
             // line assists average difference
-            color = shade(data.getValue(i, 25) * -1, 0, 3, 0.33)
+            color = RGB_Linear_Shade(data.getValue(i, 25) * -1, 0, 3, 0.33)
             data.setProperty(i, 25, 'style', `background-color: ${color};`)
         }
     }
 }
 
 function drawTable(data, database, options, table_id) {
-    for (let i = 0; i < data.length / 12; i++) {
+    for (let i = 0; i < data.length / 12; i++) { // split data into slices for each game
         const data_slice = data.slice(i * 12, (i * 12) + 12)
 
         const datatable = new google.visualization.arrayToDataTable(data_slice);
 
-        format_cells(i, datatable, database)
+        formatCells(i, datatable, database)
 
         const table_div = document.createElement('div')
         table_div.classList.add(`t-${i}`)
@@ -233,11 +231,11 @@ function drawTable(data, database, options, table_id) {
         table_container.appendChild(table_div);
 
         // allow cell editing
-        table_div.addEventListener('click', e => edit_cells(e, i))
+        table_div.addEventListener('click', e => editCells(e, i))
     }
 }
 
-function edit_cells(e, i) {
+function editCells(e, i) {
     const cell = e.target.closest('td')
     if (!cell) return
 
@@ -247,12 +245,12 @@ function edit_cells(e, i) {
         if ((row.rowIndex - 6) % 6 !== 0) {
             cell.contentEditable = true
             // update projection values and formatting
-            cell.addEventListener('blur', function(e) { update_table(e, i, row.rowIndex, cell.cellIndex) })
+            cell.addEventListener('blur', function(e) { updateTable(e, i, row.rowIndex, cell.cellIndex) })
         }
     }
 }
 
-function update_cell(sender, tbody, r, c) {
+function updateCell(sender, tbody, r, c) {
     const table_rows = tbody.childNodes;
     const table_columns = table_rows[r - 1].childNodes;
     let color
@@ -274,11 +272,11 @@ function update_cell(sender, tbody, r, c) {
             table_columns[1].style.backgroundColor = "rgb(255, 255, 255)";
             table_columns[1].style.color = "rgb(0, 0, 0)";
 
-            color = shade(table_columns[2].innerHTML * -1, 0, 3, 0.33)
+            color = RGB_Linear_Shade(table_columns[2].innerHTML * -1, 0, 3, 0.33)
             table_columns[2].style.backgroundColor = color;
             table_columns[2].style.color = "rgb(0, 0, 0)";
 
-            color = shade(table_columns[3].innerHTML * -1, 0, 3, 0.33)
+            color = RGB_Linear_Shade(table_columns[3].innerHTML * -1, 0, 3, 0.33)
             table_columns[3].style.backgroundColor = color;
             table_columns[3].style.color = "rgb(0, 0, 0)";
         }
@@ -296,7 +294,7 @@ function update_cell(sender, tbody, r, c) {
             table_columns[15].style.backgroundColor = "rgb(255, 255, 255)";
             table_columns[15].style.color = "rgb(0, 0, 0)";
 
-            color = shade(table_columns[16].innerHTML * -1, 0, 3, 0.33)
+            color = RGB_Linear_Shade(table_columns[16].innerHTML * -1, 0, 3, 0.33)
             table_columns[16].style.backgroundColor = color;
             table_columns[16].style.color = "rgb(0, 0, 0)";
         }
@@ -314,20 +312,20 @@ function update_cell(sender, tbody, r, c) {
             table_columns[24].style.backgroundColor = "rgb(255, 255, 255)";
             table_columns[24].style.color = "rgb(0, 0, 0)";
 
-            color = shade(table_columns[25].innerHTML * -1, 0, 3, 0.33)
+            color = RGB_Linear_Shade(table_columns[25].innerHTML * -1, 0, 3, 0.33)
             table_columns[25].style.backgroundColor = color;
             table_columns[25].style.color = "rgb(0, 0, 0)";
         }
     }
 }
 
-function update_table(sender, i, r, c){
+function updateTable(sender, i, r, c){
     const tbody1 = document.querySelector(`#table1 .t-${i} tbody`);
     const tbody2 = document.querySelector(`#table2 .t-${i} tbody`);
 
     // update cells in both tables
-    update_cell(sender, tbody1, r, c)
-    update_cell(sender, tbody2, r, c)
+    updateCell(sender, tbody1, r, c)
+    updateCell(sender, tbody2, r, c)
 }
 
 async function handleNameClick(e, database) {
@@ -350,13 +348,13 @@ async function handleNameClick(e, database) {
         const table = document.getElementById('table1');
         let date_from
         if (table.style.display === 'none') {
-            date_from = '2/6/2025'
+            date_from = window.loaderAPI.trade_deadline_date
         } else {
             date_from = ''
         }
 
-        drawPieChart(text, database, 'piechart1')
-        drawPieChart(text, database, 'piechart2')
+        drawPieChart(text, database, 'pie_chart1')
+        drawPieChart(text, database, 'pie_chart2')
         await drawColumnChart(text, date_from, database)
     }
 }
@@ -379,7 +377,7 @@ function drawPieChart(name, database, pie_id) {
 
     // set slice values
     let data
-    if (pie_id === 'piechart1') {
+    if (pie_id === 'pie_chart1') {
         data = database.play_types
     } else {
         data = database.play_types_playoffs
@@ -443,13 +441,7 @@ function drawPieChart(name, database, pie_id) {
     const percentile = {}
     for (const [key, value] of Object.entries(database.play_types_defense)) {
         for (const team of value) if (team[2] === opponent) {
-            if (team[6] > 0.5) {
-                const p = 1 - (team[6] - 0.5) * 2
-                percentile[key] = RGB_Linear_Shade(p, red)
-            } else {
-                const p = 1 - (team[6] * 2)
-                percentile[key] = RGB_Linear_Shade(p, green)
-            }
+            percentile[key] = RGB_Linear_Shade(1 - team[6], 0.5, 1, 2)
         }
     }
 
@@ -543,7 +535,7 @@ async function drawColumnChart(name, date_from, database) {
         colors: [color]
     };
 
-    const chart_container = document.getElementById('columnchart');
+    const chart_container = document.getElementById('column_chart');
     const chart = new google.visualization.ColumnChart(chart_container);
     chart.draw(datatable, options)
 
@@ -552,7 +544,7 @@ async function drawColumnChart(name, date_from, database) {
 
 window.loaderAPI.load((e, raw_table_data, raw_deadline_table_data, database) => {
     // create schedule bar
-    create_schedule_bar(database['lineups'])
+    createScheduleBar(database['lineups'])
 
     // chart container toggle button
     const toggle_button = document.getElementById('toggle_charts')
@@ -585,41 +577,41 @@ window.loaderAPI.load((e, raw_table_data, raw_deadline_table_data, database) => 
     table2.addEventListener('click', async function(e) { await handleNameClick(e, database) })
 
     // button to switch tables and column chart
-    const switch_table = document.getElementById('switch_table');
-    switch_table.innerHTML = "Full Season stats" // season stats are displayed by default
-    switch_table.addEventListener('click', function() {
+    const switch_table_button = document.getElementById('switch_table');
+    switch_table_button.innerHTML = "Full Season stats" // season stats are displayed by default
+    switch_table_button.addEventListener('click', function() {
         const table1 = document.getElementById('table1');
         const table2 = document.getElementById('table2');
         const player_name = document.getElementById('player_info');
 
         if (table1.style.display === 'none') {
-            const container = document.querySelector('#table2 .google-visualization-table > div');
-            const scrollState = container.scrollTop
+            const table = document.querySelector('#table2 .google-visualization-table > div');
+            const scrollState = table.scrollTop
 
             table1.style.setProperty('display', 'block');
             table2.style.setProperty('display', 'none');
-            switch_table.innerHTML = "Season stats"
+            switch_table_button.innerHTML = "Season stats"
 
-            const newContainer = document.querySelector('#table1 .google-visualization-table > div')
-            newContainer.scrollTop = scrollState
+            const new_table = document.querySelector('#table1 .google-visualization-table > div')
+            new_table.scrollTop = scrollState
 
-            const chart_container = document.getElementById('columnchart');
+            const chart_container = document.getElementById('column_chart');
             if (chart_container.classList.contains('drawn')) {
                 drawColumnChart(player_name.innerHTML, '', database).then()
             }
 
         } else {
-            const container = document.querySelector('#table1 .google-visualization-table > div');
-            const scrollState = container.scrollTop
+            const table = document.querySelector('#table1 .google-visualization-table > div');
+            const scrollState = table.scrollTop
 
             table1.style.setProperty('display', 'none');
             table2.style.setProperty('display', 'block');
-            switch_table.innerHTML = "Post trade deadline stats"
+            switch_table_button.innerHTML = "Post trade deadline stats"
 
-            const newContainer = document.querySelector('#table2 .google-visualization-table > div')
-            newContainer.scrollTop = scrollState
+            const new_table = document.querySelector('#table2 .google-visualization-table > div')
+            new_table.scrollTop = scrollState
 
-            const chart_container = document.getElementById('columnchart');
+            const chart_container = document.getElementById('column_chart');
             if (chart_container.classList.contains('drawn')) {
                 drawColumnChart(player_name.innerHTML, '2/6/2025', database).then()
             }
@@ -635,9 +627,9 @@ window.loaderAPI.load((e, raw_table_data, raw_deadline_table_data, database) => 
         })
 
         // remove existing tables
-        const elements = document.querySelectorAll('[class*="t-"]');
-        elements.forEach(element => {
-            element.remove()
+        const tables = document.querySelectorAll('[class*="t-"]');
+        tables.forEach(table => {
+            table.remove()
         })
 
         // draw new, refreshed tables
@@ -646,20 +638,20 @@ window.loaderAPI.load((e, raw_table_data, raw_deadline_table_data, database) => 
     })
 
     // button to switch pie chart
-    const switch_pie = document.getElementById('switch_pie');
-    switch_pie.innerHTML = "Regular Season"
-    switch_pie.addEventListener('click', function() {
-        const piechart1 = document.getElementById('piechart1');
-        const piechart2 = document.getElementById('piechart2');
+    const switch_pie_button = document.getElementById('switch_pie');
+    switch_pie_button.innerHTML = "Regular Season"
+    switch_pie_button.addEventListener('click', function() {
+        const piechart1 = document.getElementById('pie_chart1');
+        const piechart2 = document.getElementById('pie_chart2');
 
         if (piechart1.style.visibility === 'hidden') {
             piechart1.style.setProperty('visibility', 'visible');
             piechart2.style.setProperty('visibility', 'hidden');
-            switch_pie.innerHTML = "Regular Season"
+            switch_pie_button.innerHTML = "Regular Season"
         } else {
             piechart1.style.setProperty('visibility', 'hidden');
             piechart2.style.setProperty('visibility', 'visible');
-            switch_pie.innerHTML = "Playoffs"
+            switch_pie_button.innerHTML = "Playoffs"
         }
     })
 

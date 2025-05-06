@@ -181,7 +181,7 @@ td:focus {
     transform: translateY(0);
 }
 
-#piechart1, #piechart2 {
+#pie_chart1, #pie_chart2 {
     width: 50%;
     height: 100%;
     padding: 15px;
@@ -191,7 +191,7 @@ td:focus {
     box-sizing: border-box;
 }
 
-#columnchart {
+#column_chart {
     width: 50%;
     height: 100%;
     padding: 15px;
