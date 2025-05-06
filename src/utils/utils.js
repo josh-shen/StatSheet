@@ -9,6 +9,9 @@ function parse_lineups(tables) {
         for (let j = 0; j < headers.length; j++) {
             if (headers[j].textContent.includes(" @ ")) {
                 let s = headers[j].textContent.split(" ");
+
+                teams['start_time'] = `${s[66]} ${s[67]} ${s[68].trim()}`
+
                 teams['away'] = normalize_team(s[32])
                 teams['home'] = normalize_team(s[34].trim())
 
@@ -63,7 +66,6 @@ function parse_lineups(tables) {
         }
         if (!empty) lineups.push([...home, teams, ...away])
     }
-
     return lineups
 }
 
@@ -134,8 +136,7 @@ function projection(pts_stats) {
 
 function create_table(lineups, stats, props){
     const table = []
-
-    table.push([
+    const header = [
         {label: '----------------------------------------', type: 'string'},
         {label: 'points', type: 'number'},
         {type: 'number'},
@@ -167,7 +168,8 @@ function create_table(lineups, stats, props){
         {label: 'passes', type: 'number'},
         {label: 'ast/pass', type: 'number'},
         {label: '%ast', type: 'number'}
-    ])
+    ]
+    table.push(header)
 
     for (const group of lineups) {
         for (const name of group) {
@@ -226,7 +228,7 @@ function create_table(lineups, stats, props){
 
             table.push(player_row)
         }
-        table.push(['',null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null])
+        table.push(header)
     }
     table.pop() // remove last empty row
     return table

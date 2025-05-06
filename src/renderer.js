@@ -45,100 +45,96 @@ function create_schedule_bar(lineups) {
     const container = document.getElementById('top_bar')
 
     lineups.forEach((game) => {
-        console.log(game, lineups)
-        const schedule_div = document.createElement('div')
+        const matchup_card = document.createElement('div')
+        matchup_card.classList.add('matchup-card')
+
         if (game[5]['favorite'] === 'LIVE') {
-            schedule_div.textContent = `${game[5]['away']} @ ${game[5]['home']} LIVE`
+            const time = document.createElement('div')
+            time.classList.add('time')
+            time.textContent = 'Started'
+
+            const teams = document.createElement('div')
+            teams.classList.add('teams')
+            teams.textContent = `${game[5]['away']} @ ${game[5]['home']}`
+
+            matchup_card.appendChild(time)
+            matchup_card.appendChild(teams)
         } else {
-            schedule_div.textContent = `
-            ${game[5]['away']} @ ${game[5]['home']}
-            ${game[5]['favorite']} -${game[5]['spread']} O/U${game[5]['total']}
-            ${game[5]['start_time']}
-            `
+            const time = document.createElement('div')
+            time.classList.add('time')
+            time.textContent = game[5]['start_time']
+
+            const teams = document.createElement('div')
+            teams.classList.add('teams')
+            teams.textContent = `${game[5]['away']} @ ${game[5]['home']}`
+
+            const details = document.createElement('div')
+            details.classList.add('details')
+            details.textContent = `${game[5]['favorite']} -${game[5]['spread']} O/U${game[5]['total']}`
+
+            matchup_card.appendChild(time)
+            matchup_card.appendChild(teams)
+            matchup_card.appendChild(details)
         }
-        schedule_div.className = 'game_schedule'
-        container.appendChild(schedule_div)
+        matchup_card.style.borderLeft = `5px solid var(--${game[5]['away'].toLowerCase()}-alternate)`
+        matchup_card.style.borderRight = `5px solid var(--${game[5]['home'].toLowerCase()})`
+
+        container.appendChild(matchup_card)
     })
 }
 
-function format_cells(data, database) {
+function format_cells(table_index, data, database) {
     const r = data.getNumberOfRows()
     let color
 
-    // individual game colors
-    for (let i = 0; i < r / 12; i++) {
-        // team colors
+    // team colors
+    for (let j = 0; j < 11; j++) {
+        const r = j
+        let color
+        if (j < 5) {
+            color = `--${database.lineups[table_index][5]['away'].toLowerCase()}-alternate`
+        } else if (j > 5) {
+            color = `--${database.lineups[table_index][5]['home'].toLowerCase()}`
+        }
+        data.setProperty(r, 0, 'className', 'name_cell')
+        data.setProperty(r, 0, 'style', `border-left: 4px solid var(${color}) !important`)
+    }
+
+    // injury indicator
+    for (const obj of database.lineups[table_index][5]['injury']) {
+        const key = Object.keys(obj)
+        let val = obj[key[0]]
+        const snip_start = val.indexOf("(") // remove (injury), (illness), etc. tags from description
+        const snip_end = val.indexOf(")")
+        if (snip_start !== -1 || snip_end !== -1) {
+            val = val.slice(0, snip_start - 1) + val.slice(snip_end + 1);
+        }
+        const r = Number(key[0])
+        let cell = data.getValue(r, 0)
+        if (val.includes('Will not return') || val.includes('Out')) {
+            data.setValue(r, 0, cell + `<span class="outAlert" injury-tooltip="${val}"> OUT</span>`)
+        } else {
+            data.setValue(r, 0, cell + `<span class="injuryAlert" injury-tooltip="${val}"> GTD</span>`)
+        }
+    }
+
+    // rebounding colors
+    for (const c of [20, 21, 22]) {
+        let min = 100
+        let max = 0
         for (let j = 0; j < 11; j++) {
-            const r = j + (i * 12)
-            let color
-            if (j < 5) {
-                color = `--${database.lineups[i][5]['away'].toLowerCase()}-alternate`
-            } else {
-                color = `--${database.lineups[i][5]['home'].toLowerCase()}`
-            }
-            data.setProperty(r, 0, 'className', 'name_cell')
-            data.setProperty(r, 0, 'style', `border-left: 4px solid var(${color}) !important`)
+            const r = j
+
+            if (!data.getValue(r, c)) continue
+
+            min = Math.min(min, data.getValue(r, c))
+            max = Math.max(max, data.getValue(r, c))
         }
-        // spread, points total
-        const row = 5 + (i * 12)
-        const favorite = database.lineups[i][5]['favorite']
-        const spread = database.lineups[i][5]['spread']
-        const total = database.lineups[i][5]['total']
-
-        if (favorite === 'LIVE') {
-            data.setValue(row, 0, 'LIVE')
-        } else {
-            data.setValue(row, 0, `<span>${favorite} -${spread}</span><span class="total">+/-${total}</span>`)
-        }
-
-        // spread
-        if (database.lineups[i][5]['spread'] <= 3) {
-            color = green
-        } else if (database.lineups[i][5]['spread'] >= 3.5 && database.lineups[i][5]['spread'] <= 6) {
-            color = yellow
-        } else if (database.lineups[i][5]['spread'] >= 6.5 && database.lineups[i][5]['spread'] <= 9) {
-            color = orange
-        } else {
-            color = red
-        }
-        data.setProperty(row, 0, 'style', `background-color: ${color}; display: flex; justify-content: space-between;`)
-
-        // injury indicator
-        for (const obj of database.lineups[i][5]['injury']) {
-            const key = Object.keys(obj)
-            let val = obj[key[0]]
-            const snip_start = val.indexOf("(") // remove (injury), (illness), etc. tags from description
-            const snip_end = val.indexOf(")")
-            if (snip_start !== -1 || snip_end !== -1) {
-                val = val.slice(0, snip_start - 1) + val.slice(snip_end + 1);
-            }
-            const r = Number(key[0]) + (i * 12)
-            let cell = data.getValue(r, 0)
-            if (val.includes('Will not return') || val.includes('Out')) {
-                data.setValue(r, 0, cell + `<span class="outAlert" injury-tooltip="${val}"> OUT</span>`)
-            } else {
-                data.setValue(r, 0, cell + `<span class="injuryAlert" injury-tooltip="${val}"> GTD</span>`)
-            }
-        }
-
-        // rebounding colors
-        for (const c of [20, 21, 22]) {
-            let min = 100
-            let max = 0
-            for (let j = 0; j < 11; j++) {
-                const r = j + (i * 12)
-
-                if (!data.getValue(r, c)) continue
-
-                min = Math.min(min, data.getValue(r, c))
-                max = Math.max(max, data.getValue(r, c))
-            }
-            const mid = (max + min) / 2
-            for (let j = 0; j < 11; j++) {
-                const r = j + (i * 12)
-                const color = shade(data.getValue(r, c), mid, max, 1/(max-mid))
-                data.setProperty(r, c, 'style', `background-color: ${color};`)
-            }
+        const mid = (max + min) / 2
+        for (let j = 0; j < 11; j++) {
+            const r = j
+            const color = shade(data.getValue(r, c), mid, max, 1/(max-mid))
+            data.setProperty(r, c, 'style', `background-color: ${color};`)
         }
     }
 
@@ -220,20 +216,28 @@ function format_cells(data, database) {
 }
 
 function drawTable(data, database, options, table_id) {
-    const datatable = new google.visualization.arrayToDataTable(data);
+    for (let i = 0; i < data.length / 12; i++) {
+        const data_slice = data.slice(i * 12, (i * 12) + 12)
 
-    format_cells(datatable, database)
+        const datatable = new google.visualization.arrayToDataTable(data_slice);
 
-    const table = new google.visualization.Table(document.getElementById(table_id));
+        format_cells(i, datatable, database)
 
-    table.draw(datatable, options);
+        const table_div = document.createElement('div')
+        table_div.classList.add(`t-${i}`)
 
-    // allow cell editing
-    const tbody = document.querySelector(`#${table_id} tbody`);
-    tbody.addEventListener('click', e => edit_cells(e))
+        const table = new google.visualization.Table(table_div);
+        table.draw(datatable, options);
+
+        const table_container = document.getElementById(table_id);
+        table_container.appendChild(table_div);
+
+        // allow cell editing
+        table_div.addEventListener('click', e => edit_cells(e, i))
+    }
 }
 
-function edit_cells(e) {
+function edit_cells(e, i) {
     const cell = e.target.closest('td')
     if (!cell) return
 
@@ -243,7 +247,7 @@ function edit_cells(e) {
         if ((row.rowIndex - 6) % 6 !== 0) {
             cell.contentEditable = true
             // update projection values and formatting
-            cell.addEventListener('blur', function(e) { update_table(e, row.rowIndex, cell.cellIndex) })
+            cell.addEventListener('blur', function(e) { update_table(e, i, row.rowIndex, cell.cellIndex) })
         }
     }
 }
@@ -317,9 +321,9 @@ function update_cell(sender, tbody, r, c) {
     }
 }
 
-function update_table(sender, r, c){
-    const tbody1 = document.querySelector(`#table1 tbody`);
-    const tbody2 = document.querySelector(`#table2 tbody`);
+function update_table(sender, i, r, c){
+    const tbody1 = document.querySelector(`#table1 .t-${i} tbody`);
+    const tbody2 = document.querySelector(`#table2 .t-${i} tbody`);
 
     // update cells in both tables
     update_cell(sender, tbody1, r, c)
@@ -513,6 +517,15 @@ async function drawColumnChart(name, date_from, database) {
             return a[1] - b[1];
         });
 
+        // get only top 9 results
+        dataset = dataset.slice(-9)
+
+        // change names from last, first to first last
+        dataset.forEach((player) => {
+            let name = player[0].split(',')
+            player[0] = `${name[1]} ${name[0]}`
+        })
+
         // add dataset for player to cache
         if (!data_cache[name]) {
             data_cache[name] = {[date_from]: dataset};
@@ -530,8 +543,11 @@ async function drawColumnChart(name, date_from, database) {
         colors: [color]
     };
 
-    const chart = new google.visualization.ColumnChart(document.getElementById('columnchart'));
+    const chart_container = document.getElementById('columnchart');
+    const chart = new google.visualization.ColumnChart(chart_container);
     chart.draw(datatable, options)
+
+    chart_container.className = 'drawn';
 }
 
 window.loaderAPI.load((e, raw_table_data, raw_deadline_table_data, database) => {
@@ -584,10 +600,14 @@ window.loaderAPI.load((e, raw_table_data, raw_deadline_table_data, database) => 
             table2.style.setProperty('display', 'none');
             switch_table.innerHTML = "Season stats"
 
-            drawColumnChart(player_name.innerHTML, '', database).then()
-
             const newContainer = document.querySelector('#table1 .google-visualization-table > div')
             newContainer.scrollTop = scrollState
+
+            const chart_container = document.getElementById('columnchart');
+            if (chart_container.classList.contains('drawn')) {
+                drawColumnChart(player_name.innerHTML, '', database).then()
+            }
+
         } else {
             const container = document.querySelector('#table1 .google-visualization-table > div');
             const scrollState = container.scrollTop
@@ -596,10 +616,13 @@ window.loaderAPI.load((e, raw_table_data, raw_deadline_table_data, database) => 
             table2.style.setProperty('display', 'block');
             switch_table.innerHTML = "Post trade deadline stats"
 
-            drawColumnChart(player_name.innerHTML, '2/6/2025', database).then()
-
             const newContainer = document.querySelector('#table2 .google-visualization-table > div')
             newContainer.scrollTop = scrollState
+
+            const chart_container = document.getElementById('columnchart');
+            if (chart_container.classList.contains('drawn')) {
+                drawColumnChart(player_name.innerHTML, '2/6/2025', database).then()
+            }
         }
     })
 
@@ -611,6 +634,13 @@ window.loaderAPI.load((e, raw_table_data, raw_deadline_table_data, database) => 
             method: 'GET'
         })
 
+        // remove existing tables
+        const elements = document.querySelectorAll('[class*="t-"]');
+        elements.forEach(element => {
+            element.remove()
+        })
+
+        // draw new, refreshed tables
         drawTable(raw_table_data, database, options, 'table1')
         drawTable(raw_deadline_table_data, database, options, 'table2')
     })
@@ -633,13 +663,6 @@ window.loaderAPI.load((e, raw_table_data, raw_deadline_table_data, database) => 
         }
     })
 
-    /*
-    make charts responsive
-    window.addEventListener('resize', function() {
-        drawPieChart();
-        drawColumnChart();
-    });
-     */
 })
 
 /*

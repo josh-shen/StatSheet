@@ -57,6 +57,35 @@ div::-webkit-scrollbar {
     background-color: #EEE;
 }
 
+.matchup-card {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    min-width: 10rem;
+    max-width: 10rem;
+    background-color: white;
+    border-radius: 4px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.08);
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    z-index: 10;
+}
+
+.matchup-card .time {
+    color: #e67e22;
+    font-size: 7pt;
+    font-weight: bold;
+}
+
+.matchup-card .teams {
+    color: #2d2d2d;
+}
+
+.matchup-card .details {
+    color: #555;
+    font-size: 7pt;
+}
+
 #main {
     display: flex;
     flex-direction: column;
@@ -68,6 +97,7 @@ div::-webkit-scrollbar {
 
 #table_container {
     height: 100%;
+    width: calc(100% - 20px);
     position: relative;
     padding: 10px;
     transition: height 0.3s ease-in-out;
@@ -136,7 +166,7 @@ td:focus {
 
 #charts_container {
     display: flex;
-    height: 50%;
+    height: calc(50% - 2rem);
     width: calc(100% - 20px);
     border-radius: 14px 14px 0 0;
     background-color: #FFF;
