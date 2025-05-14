@@ -44,35 +44,90 @@ function createScheduleBar(lineups) {
 
     lineups.forEach((game) => {
         const matchup_card = document.createElement('div')
-        matchup_card.classList.add('matchup-card')
+        matchup_card.classList.add('matchup_card')
 
         if (game[5]['favorite'] === 'LIVE') {
+            const away = document.createElement('div')
+            away.classList.add('away')
+            away.textContent = `${game[5]['away']}`
+            const home = document.createElement('div')
+            home.classList.add('home')
+            home.textContent = `${game[5]['home']}`
+
             const time = document.createElement('div')
-            time.classList.add('time')
-            time.textContent = 'Started'
-
-            const teams = document.createElement('div')
-            teams.classList.add('teams')
-            teams.textContent = `${game[5]['away']} @ ${game[5]['home']}`
-
-            matchup_card.appendChild(time)
-            matchup_card.appendChild(teams)
-        } else {
-            const time = document.createElement('div')
-            time.classList.add('time')
-            time.textContent = game[5]['start_time']
-
-            const teams = document.createElement('div')
-            teams.classList.add('teams')
-            teams.textContent = `${game[5]['away']} @ ${game[5]['home']}`
+            time.classList.add('live')
+            time.textContent = 'LIVE'
 
             const details = document.createElement('div')
             details.classList.add('details')
-            details.textContent = `${game[5]['favorite']} -${game[5]['spread']} O/U${game[5]['total']}`
 
+            const col1 = document.createElement('div')
+            col1.classList.add('col1')
+            col1.appendChild(away)
+
+            const col2 = document.createElement('div')
+            col2.classList.add('col2')
+            col2.appendChild(home)
+
+            matchup_card.appendChild(col1)
             matchup_card.appendChild(time)
-            matchup_card.appendChild(teams)
-            matchup_card.appendChild(details)
+            matchup_card.appendChild(col2)
+        } else {
+            const away = document.createElement('div')
+            away.classList.add('away')
+            away.textContent = `${game[5]['away']}`
+            const home = document.createElement('div')
+            home.classList.add('home')
+            home.textContent = `${game[5]['home']}`
+
+            const time = document.createElement('div')
+            time.classList.add('time')
+            const time_string = game[5]['start_time'].split(" ")
+            const hour_minute_string = time_string[0].split(':')
+            const today = new Date()
+
+            if (time_string[1] !== 'PM') {
+                today.setUTCHours(Number(hour_minute_string[0]) + 4) // original time is in eastern time, +4 to UTC
+            } else {
+                today.setUTCHours(Number(hour_minute_string[0]) + 16) // +4 to UTC, +12 for 24hr format
+            }
+            today.setUTCMinutes(Number(hour_minute_string[1]))
+
+            // double zeros
+            let hours, minutes
+            if (today.getHours() < 10) {
+                hours = `0${today.getHours()}`
+            } else {
+                hours = today.getHours()
+            }
+            if (today.getMinutes() === 0) {
+                minutes = `0${today.getMinutes()}`
+            } else {
+                minutes = today.getMinutes()
+            }
+            time.textContent = `${hours}:${minutes}`
+
+            const spread = document.createElement('div')
+            spread.classList.add('spread')
+            spread.textContent = `${game[5]['favorite']} -${game[5]['spread']}`
+
+            const total = document.createElement('div')
+            total.classList.add('total')
+            total.textContent = `O/U${game[5]['total']}`
+
+            const col1 = document.createElement('div')
+            col1.classList.add('col1')
+            col1.appendChild(away)
+            col1.appendChild(spread)
+
+            const col2 = document.createElement('div')
+            col2.classList.add('col2')
+            col2.appendChild(home)
+            col2.appendChild(total)
+
+            matchup_card.appendChild(col1)
+            matchup_card.appendChild(time)
+            matchup_card.appendChild(col2)
         }
         matchup_card.style.borderLeft = `5px solid var(--${game[5]['away'].toLowerCase()}-alternate)`
         matchup_card.style.borderRight = `5px solid var(--${game[5]['home'].toLowerCase()})`
@@ -82,7 +137,7 @@ function createScheduleBar(lineups) {
 }
 
 function formatCells(table_index, data, database) {
-    const r = data.getNumberOfRows()
+    const rows = data.getNumberOfRows()
     let color
 
     // team colors
@@ -94,7 +149,7 @@ function formatCells(table_index, data, database) {
         } else if (j > 5) {
             color = `--${database.lineups[table_index][5]['home'].toLowerCase()}`
         }
-        data.setProperty(r, 0, 'className', 'name_cell')
+        data.setProperty(r, 0, 'className', 'name_cell') // name click event listener identifier
         data.setProperty(r, 0, 'style', `border-left: 4px solid var(${color}) !important`)
     }
 
@@ -137,7 +192,7 @@ function formatCells(table_index, data, database) {
     }
 
     // full stats colors
-    for (let i = 0; i < r; ++i) {
+    for (let i = 0; i < rows; ++i) {
         // min/game 18 - 28 - 38
         color = RGB_Log_Blend(data.getValue(i, 4), 18, 28, 10, 0.1)
         data.setProperty(i, 4, 'style', `background-color: ${color};`)
@@ -152,7 +207,7 @@ function formatCells(table_index, data, database) {
 
         // ft% 0.71 - 0.81 - 0.91
         color = RGB_Log_Blend(data.getValue(i, 12), 0.71, 0.81, 0.1, 10)
-        data.setProperty(i, 12, 'style', `background-color: ${color};`)
+        data.setProperty(i, 12, 'style', `background-color: ${color};  min-width: 3%; max-width: 3%;`)
 
         // usg% 0.1 - 0.2 - 0.3
         color = RGB_Log_Blend(data.getValue(i, 13) , 0.1, 0.2, 0.1, 10)
@@ -180,9 +235,9 @@ function formatCells(table_index, data, database) {
 
         // cover -1 points
         if (data.getValue(i, 1) === -1) {
-            data.setProperty(i, 1, 'style', `background-color: ${cover}; color: ${cover}`)
-            data.setProperty(i, 2, 'style', `background-color: ${cover}; color: ${cover}`)
-            data.setProperty(i, 3, 'style', `background-color: ${cover}; color: ${cover}`)
+            data.setProperty(i, 1, 'style', `background-color: ${cover}; color: ${cover};`)
+            data.setProperty(i, 2, 'style', `background-color: ${cover}; color: ${cover};`)
+            data.setProperty(i, 3, 'style', `background-color: ${cover}; color: ${cover};`)
         } else {
             // line points average difference
             color = RGB_Linear_Shade(data.getValue(i, 2) * -1, 0, 3, 0.33)
@@ -194,8 +249,8 @@ function formatCells(table_index, data, database) {
         }
         // cover -1 rebounds
         if (data.getValue(i, 15) === -1) {
-            data.setProperty(i, 15, 'style', `background-color: ${cover}; color: ${cover}`)
-            data.setProperty(i, 16, 'style', `background-color: ${cover}; color: ${cover}`)
+            data.setProperty(i, 15, 'style', `background-color: ${cover}; color: ${cover};`)
+            data.setProperty(i, 16, 'style', `background-color: ${cover}; color: ${cover};`)
         } else {
             // line rebounds average difference
             color = RGB_Linear_Shade(data.getValue(i, 16) * -1, 0, 3, 0.33)
@@ -203,13 +258,26 @@ function formatCells(table_index, data, database) {
         }
         // cover -1 assists
         if (data.getValue(i, 24) === -1) {
-            data.setProperty(i, 24, 'style', `background-color: ${cover}; color: ${cover}`)
-            data.setProperty(i, 25, 'style', `background-color: ${cover}; color: ${cover}`)
+            data.setProperty(i, 24, 'style', `background-color: ${cover}; color: ${cover};`)
+            data.setProperty(i, 25, 'style', `background-color: ${cover}; color: ${cover};`)
         } else {
             // line assists average difference
             color = RGB_Linear_Shade(data.getValue(i, 25) * -1, 0, 3, 0.33)
             data.setProperty(i, 25, 'style', `background-color: ${color};`)
         }
+    }
+}
+
+function setWidths(data) {
+    data.setProperty(0, 0, 'className', `name_cell header_name`)
+    for (const c of [1, 15, 24]) {
+        data.setProperty(0, c, 'className', `header_line`)
+    }
+    for (const c of [2, 3, 4, 8, 10, 12, 13, 14, 16, 20, 21, 22, 23, 25, 28, 29, 30]) {
+        data.setProperty(0, c, 'className', `header_colored`)
+    }
+    for (const c of [5, 6, 7, 9, 11, 17, 18, 19, 26, 27]) {
+        data.setProperty(0, c, 'className', `header_cell`)
     }
 }
 
@@ -220,9 +288,10 @@ function drawTable(data, database, options, table_id) {
         const datatable = new google.visualization.arrayToDataTable(data_slice);
 
         formatCells(i, datatable, database)
+        setWidths(datatable)
 
         const table_div = document.createElement('div')
-        table_div.classList.add(`t-${i}`)
+        table_div.classList.add(`t-${i}`, 'table')
 
         const table = new google.visualization.Table(table_div);
         table.draw(datatable, options);
@@ -233,6 +302,163 @@ function drawTable(data, database, options, table_id) {
         // allow cell editing
         table_div.addEventListener('click', e => editCells(e, i))
     }
+}
+
+function addHeader(table_container, switch_table_button, refresh_button){
+    const header = document.getElementById('header')
+
+    const name = document.createElement('div');
+    name.classList.add('header_name');
+    name.appendChild(refresh_button);
+    name.appendChild(switch_table_button);
+    header.appendChild(name);
+
+    const points_line = document.createElement('div');
+    points_line.classList.add('header_line');
+    points_line.textContent = 'Points';
+    header.appendChild(points_line);
+
+    const points_diff = document.createElement('div');
+    points_diff.classList.add('header_colored');
+    header.appendChild(points_diff);
+
+    const projected_diff = document.createElement('div');
+    projected_diff.classList.add('header_colored');
+    header.appendChild(projected_diff);
+
+    const minutes = document.createElement('div');
+    minutes.classList.add('header_colored');
+    minutes.textContent = 'Min';
+    header.appendChild(minutes);
+
+    const points = document.createElement('div');
+    points.classList.add('header_cell');
+    points.textContent = 'Pts';
+    header.appendChild(points);
+
+    const projected = document.createElement('div');
+    projected.classList.add('header_cell');
+    header.appendChild(projected);
+
+    const fga = document.createElement('div');
+    fga.classList.add('header_cell');
+    fga.textContent = 'FGA';
+    header.appendChild(fga);
+
+    const fgp = document.createElement('div');
+    fgp.classList.add('header_colored');
+    fgp.textContent = 'FG%';
+    header.appendChild(fgp);
+
+    const tpa = document.createElement('div');
+    tpa.classList.add('header_cell');
+    tpa.textContent = '3PA';
+    header.appendChild(tpa);
+
+    const tpp = document.createElement('div');
+    tpp.classList.add('header_colored');
+    tpp.textContent = '3P%';
+    header.appendChild(tpp);
+
+    const fta = document.createElement('div');
+    fta.classList.add('header_cell');
+    fta.textContent = 'FTA';
+    header.appendChild(fta);
+
+    const ftp = document.createElement('div');
+    ftp.classList.add('header_colored');
+    ftp.textContent = 'FT%';
+    header.appendChild(ftp);
+
+    const team_points = document.createElement('div');
+    team_points.classList.add('header_colored');
+    team_points.textContent = '%Pts';
+    header.appendChild(team_points);
+
+    const usage = document.createElement('div');
+    usage.classList.add('header_colored');
+    usage.textContent = 'Usage';
+    header.appendChild(usage);
+
+    const rebounds_line = document.createElement('div');
+    rebounds_line.classList.add('header_line');
+    rebounds_line.textContent = 'Rebounds';
+    header.appendChild(rebounds_line);
+
+    const rebounds_diff = document.createElement('div');
+    rebounds_diff.classList.add('header_colored');
+    header.appendChild(rebounds_diff);
+
+    const o_reb = document.createElement('div');
+    o_reb.classList.add('header_cell');
+    o_reb.textContent = 'oreb';
+    header.appendChild(o_reb);
+
+    const d_reb = document.createElement('div');
+    d_reb.classList.add('header_cell');
+    d_reb.textContent = 'dreb';
+    header.appendChild(d_reb);
+
+    const rebounds = document.createElement('div');
+    rebounds.classList.add('header_cell');
+    rebounds.textContent = 'reb';
+    header.appendChild(rebounds);
+
+    const rebound_chances = document.createElement('div');
+    rebound_chances.classList.add('header_colored');
+    rebound_chances.textContent = 'chances';
+    header.appendChild(rebound_chances);
+
+    const percent_reb_chances = document.createElement('div');
+    percent_reb_chances.classList.add('header_colored');
+    percent_reb_chances.textContent = '%chances';
+    header.appendChild(percent_reb_chances);
+
+    const contested = document.createElement('div');
+    contested.classList.add('header_colored');
+    contested.textContent = '%contested';
+    header.appendChild(contested);
+
+    const team_rebounds = document.createElement('div');
+    team_rebounds.classList.add('header_colored');
+    team_rebounds.textContent = '%reb';
+    header.appendChild(team_rebounds);
+
+    const assists_line = document.createElement('div');
+    assists_line.classList.add('header_line');
+    assists_line.textContent = 'assists';
+    header.appendChild(assists_line);
+
+    const assists_diff = document.createElement('div');
+    assists_diff.classList.add('header_colored');
+    header.appendChild(assists_diff);
+
+    const assists = document.createElement('div');
+    assists.classList.add('header_cell');
+    assists.textContent = 'ast';
+    header.appendChild(assists);
+
+    const potential_assists = document.createElement('div');
+    potential_assists.classList.add('header_cell');
+    potential_assists.textContent = 'potentials';
+    header.appendChild(potential_assists);
+
+    const passes = document.createElement('div');
+    passes.classList.add('header_colored');
+    passes.textContent = 'passes';
+    header.appendChild(passes);
+
+    const assist_pass_ratio = document.createElement('div');
+    assist_pass_ratio.classList.add('header_colored');
+    assist_pass_ratio.textContent = 'ast/pass';
+    header.appendChild(assist_pass_ratio);
+
+    const team_assists = document.createElement('div');
+    team_assists.classList.add('header_colored');
+    team_assists.textContent = '%ast';
+    header.appendChild(team_assists);
+
+    table_container.appendChild(header);
 }
 
 function editCells(e, i) {
@@ -562,7 +788,7 @@ window.loaderAPI.load((e, raw_table_data, raw_deadline_table_data, database) => 
     const options = {
         showRowNumber: false,
         allowHtml: true,
-        cssClassNames: {tableCell: 'tableCell', /*headerCell: 'headerCell'*/},
+        cssClassNames: {tableCell: 'tableCell', headerCell: 'headerCell'},
         sort: 'disable',
         width: '100%',
         //height: '100%'
@@ -637,6 +863,9 @@ window.loaderAPI.load((e, raw_table_data, raw_deadline_table_data, database) => 
         drawTable(raw_deadline_table_data, database, options, 'table2')
     })
 
+    // add custom header
+    addHeader(table_container, switch_table_button, refresh_button)
+
     // button to switch pie chart
     const switch_pie_button = document.getElementById('switch_pie');
     switch_pie_button.innerHTML = "Regular Season"
@@ -656,25 +885,3 @@ window.loaderAPI.load((e, raw_table_data, raw_deadline_table_data, database) => 
     })
 
 })
-
-/*
-    // create custom header
-    const thead = document.querySelector('.google-visualization-table-tr-head')
-    const header_cells = thead.childNodes;
-    const header = document.querySelector('#header');
-    for (const node of header_cells) {
-        const header_cell = document.createElement('div');
-        if (!node.textContent.includes('-')) {
-            header_cell.textContent = node.textContent;
-        } else {
-            const logo = document.createElement('img');
-            logo.id = 'logo'
-            logo.src = 'assets/nba.png'
-            header_cell.id = 'logo_container';
-            header_cell.appendChild(logo);
-        }
-        header_cell.style.width = node.getBoundingClientRect().width + 'px';
-        header_cell.style.height = '20px';
-        header.appendChild(header_cell);
-    }
-    */

@@ -2,7 +2,7 @@ html, body {
     height: 100%;
     margin: 0;
     padding: 0;
-    font: 10pt arial;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
     background-color: #F0F4F9;
 }
 
@@ -44,76 +44,132 @@ div::-webkit-scrollbar {
     --was: #002B5C; --was-alternate: #E31837;
 }
 
+/* top header game schedule bar */
 #top_bar {
     display: flex;
     flex-wrap: wrap;
+    height: 44px;
     gap: 10px;
-    padding: 10px;
-    height: 2rem;
+    padding: 16px 1.5% 0 1.5%;
 }
-.game_schedule {
-    border-radius: 3px;
-    padding: 10px;
-    background-color: #EEE;
-}
-
-.matchup-card {
+.matchup_card {
     display: flex;
-    flex-direction: column;
-    justify-content: center;
-    align-items: center;
-    min-width: 10rem;
-    max-width: 10rem;
+    flex-direction: row;
+    min-width: 12rem;
+    max-width: 12rem;
     background-color: white;
     border-radius: 4px;
-    box-shadow: 0 2px 4px rgba(0,0,0,0.08);
-    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    box-shadow: rgba(149, 157, 165, 0.2) 0 8px 24px;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
     z-index: 10;
 }
-
-.matchup-card .time {
-    color: #e67e22;
-    font-size: 7pt;
+.col1 {
+    text-align: right;
+    padding: 8px 0 4px 0;
+}
+.col2 {
+    padding: 8px 0 4px 0;
+}
+.away, .home {
+    font-size: 10pt;
     font-weight: bold;
 }
-
-.matchup-card .teams {
-    color: #2d2d2d;
+.time {
+    padding: 3px;
+    border-radius: 3px;
+    font-size: 8pt;
+    background-color: #333;
+    color: white;
 }
-
-.matchup-card .details {
+.live {
+    padding: 3px;
+    border-radius: 3px;
+    font-size: 8pt;
+    background-color: #C94F4F;
+    color: white;
+}
+.spread, .total {
     color: #555;
     font-size: 7pt;
 }
 
+/* main container */
 #main {
     display: flex;
     flex-direction: column;
-    height: calc(100vh - 2rem - 20px);
+    height: calc(100% - 76px);
+    padding-top: 16px;
     position: relative;
     align-items: center;
     overflow: hidden;
 }
 
+/* table containers */
 #table_container {
+    display: flex;
+    flex-direction: column;
     height: 100%;
-    width: calc(100% - 20px);
+    width: 97%;
     position: relative;
-    padding: 10px;
+    padding: 16px;
+    border-radius: 14px;
+    box-shadow: rgba(149, 157, 165, 0.2) 0 8px 24px;
+    box-sizing: border-box;
+    background-color: #FFF;
     transition: height 0.3s ease-in-out;
 }
 #table_container.expanded {
     height: 50%;
 }
-
 #table1, #table2 {
     height: 100%;
     overflow-y: auto;
+    order: 2;
+}
+.table {
+    padding-top: 10px;
 }
 
+/* google table header (hidden) */
 .headerCell {
-    visibility: hidden;
+    display: none;
 }
+/* table header */
+#header {
+    display: flex;
+    justify-content: flex-start;
+    order: 1;
+}
+.header_name, .header_line, .header_colored, .header_cell {
+    border: black solid 1px;
+    font-size: 10pt;
+    overflow: hidden;
+    box-sizing: border-box;
+}
+.header_name {
+    min-width: 14% !important;
+    max-width: 14% !important;
+    width: 14% !important;
+}
+.header_line {
+    min-width: 5% !important;
+    max-width: 5% !important;
+    width: 5% !important;
+}
+.header_colored {
+    min-width: 3% !important;
+    max-width: 3% !important;
+    width: 3% !important;
+}
+.header_cell {
+    min-width: 2% !important;
+    max-width: 2% !important;
+    width: 2% !important;
+}
+
+/* table cells */
 .tableCell {
     border: none !important;
 }
@@ -121,6 +177,7 @@ td:focus {
     background-color: #FFF !important;
 }
 
+/* injury popup */
 .injuryAlert {
     color: darkorange;
     font-size: 8pt;
@@ -164,23 +221,26 @@ td:focus {
     z-index: 50;
 }
 
+/* charts containers */
 #charts_container {
     display: flex;
-    height: calc(50% - 2rem);
-    width: calc(100% - 20px);
+    height: calc(50% - 26px);
+    width: 97%;
     border-radius: 14px 14px 0 0;
     background-color: #FFF;
     position: absolute;
     bottom: 0;
+    box-shadow: rgba(0, 0, 0, 0.35) 0 5px 15px;
     box-sizing: border-box;
     overflow:  hidden;
     transition: transform 0.3s ease-in-out;
     transform: translateY(calc(100% - 2rem));
 }
 #charts_container.expanded {
+    box-shadow: rgba(149, 157, 165, 0.2) 0 8px 24px;
     transform: translateY(0);
 }
-
+/* pie chart */
 #pie_chart1, #pie_chart2 {
     width: 50%;
     height: 100%;
@@ -190,7 +250,7 @@ td:focus {
     left: 0;
     box-sizing: border-box;
 }
-
+/* column chart */
 #column_chart {
     width: 50%;
     height: 100%;
@@ -200,7 +260,7 @@ td:focus {
     right: 0;
     box-sizing: border-box;
 }
-
+/* chart butons */
 #toggle_charts {
     width: calc(100% + 20px);
     height: 2rem;
@@ -209,7 +269,6 @@ td:focus {
     border: none;
     background-color: #FFF;
 }
-
 #controls {
     position: absolute;
     z-index: 10;
