@@ -44,6 +44,8 @@ div::-webkit-scrollbar {
     --was: #002B5C; --was-alternate: #E31837;
 }
 
+/* buttons */
+
 /* top header game schedule bar */
 #top_bar {
     display: flex;
@@ -128,49 +130,48 @@ div::-webkit-scrollbar {
     overflow-y: auto;
     order: 2;
 }
-.table {
-    padding-top: 10px;
-}
 
-/* google table header (hidden) */
-.headerCell {
+/* table header */
+.gtable_header {
     display: none;
 }
-/* table header */
 #header {
     display: flex;
     justify-content: flex-start;
     order: 1;
 }
-.header_name, .header_line, .header_colored, .header_cell {
-    border: black solid 1px;
-    font-size: 10pt;
-    overflow: hidden;
+.header_cell {
     box-sizing: border-box;
+    padding-left: 0.33em;
+    text-align: left;
+    overflow: hidden;
+    color: #6C707E;
+    font-size: 8pt;
+    font-weight: bold;
 }
-.header_name {
-    min-width: 14% !important;
-    max-width: 14% !important;
-    width: 14% !important;
+.header_xl {
+    min-width: 12% !important;
+    max-width: 12% !important;
+    width: 12% !important;
 }
-.header_line {
-    min-width: 5% !important;
-    max-width: 5% !important;
-    width: 5% !important;
+.header_l {
+    min-width: 4% !important;
+    max-width: 4% !important;
+    width: 4% !important;
 }
-.header_colored {
+.header_m {
     min-width: 3% !important;
     max-width: 3% !important;
     width: 3% !important;
 }
-.header_cell {
+.header_s {
     min-width: 2% !important;
     max-width: 2% !important;
     width: 2% !important;
 }
 
 /* table cells */
-.tableCell {
+.table_cell {
     border: none !important;
 }
 td:focus {
