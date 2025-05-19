@@ -1,0 +1,49 @@
+/* top header game schedule bar */
+#top_bar {
+    display: flex;
+    flex-wrap: wrap;
+    height: 44px;
+    gap: 10px;
+    padding: 0 1.5% 0 1.5%;
+}
+.matchup_card {
+    display: flex;
+    flex-direction: row;
+    min-width: 12rem;
+    max-width: 12rem;
+    background-color: white;
+    border-radius: 4px;
+    box-shadow: rgba(149, 157, 165, 0.2) 0 8px 24px;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    z-index: 10;
+}
+.col1 {
+    text-align: right;
+    padding: 8px 0 4px 0;
+}
+.col2 {
+    padding: 8px 0 4px 0;
+}
+.away, .home {
+    font-weight: bold;
+}
+.time {
+    padding: 3px;
+    border-radius: 3px;
+    font-size: 8pt;
+    background-color: #333;
+    color: white;
+}
+.live {
+    padding: 3px;
+    border-radius: 3px;
+    font-size: 8pt;
+    background-color: #C94F4F;
+    color: white;
+}
+.spread, .total {
+    color: #555;
+    font-size: 7pt;
+}

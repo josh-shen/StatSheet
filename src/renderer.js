@@ -268,14 +268,13 @@ function drawTable(data, database, options, table_id) {
     }
 }
 
-function addHeader(table_container, switch_table_button, refresh_button){
+function addHeader(table_container){
     const header = document.getElementById('header')
 
     const name = document.createElement('div');
     name.classList.add('header_cell')
     name.classList.add('header_xl');
-    name.appendChild(refresh_button);
-    name.appendChild(switch_table_button);
+    name.textContent = 'NAME';
     header.appendChild(name);
 
     const points_line = document.createElement('div');
@@ -748,33 +747,33 @@ window.loaderAPI.load((e, raw_table_data, raw_deadline_table_data, database) => 
         allowHtml: true,
         cssClassNames: {tableCell: 'table_cell', headerCell: 'gtable_header'},
         sort: 'disable',
-        width: '100%',
-        //height: '100%'
+        width: '100%'
     }
     google.charts.setOnLoadCallback(function() { drawTable(raw_table_data, database, options, 'table1') });
     google.charts.setOnLoadCallback(function() { drawTable(raw_deadline_table_data, database, options, 'table2') });
 
-    // add click event listener to table cells
     const table1 = document.getElementById('table1');
     const table2 = document.getElementById('table2');
+
+    // add click event listener to table cells
     table1.addEventListener('click', async function(e) { await handleNameClick(e, database) })
     table2.addEventListener('click', async function(e) { await handleNameClick(e, database) })
 
-    // button to switch tables and column chart
-    const switch_table_button = document.getElementById('switch_table');
-    switch_table_button.innerHTML = "Full Season stats" // season stats are displayed by default
-    switch_table_button.addEventListener('click', function() {
-        const table1 = document.getElementById('table1');
-        const table2 = document.getElementById('table2');
-        const player_name = document.getElementById('player_info');
-
+    // buttons to switch tables and column chart
+    const full_season_button = document.getElementById('full_season');
+    const trade_deadline_button = document.getElementById('post_trade_deadline');
+    full_season_button.addEventListener('click', function() {
         if (table1.style.display === 'none') {
+            full_season_button.classList.toggle('selected');
+            trade_deadline_button.classList.toggle('selected');
+
+            const player_name = document.getElementById('player_info');
+
             const table = document.querySelector('#table2 .google-visualization-table > div');
             const scrollState = table.scrollTop
 
             table1.style.setProperty('display', 'block');
             table2.style.setProperty('display', 'none');
-            switch_table_button.innerHTML = "Season stats"
 
             const new_table = document.querySelector('#table1 .google-visualization-table > div')
             new_table.scrollTop = scrollState
@@ -783,21 +782,27 @@ window.loaderAPI.load((e, raw_table_data, raw_deadline_table_data, database) => 
             if (chart_container.classList.contains('drawn')) {
                 drawColumnChart(player_name.innerHTML, '', database).then()
             }
+        }
+    })
+    trade_deadline_button.addEventListener('click', function() {
+        if (table2.style.display === 'none') {
+            full_season_button.classList.toggle('selected');
+            trade_deadline_button.classList.toggle('selected');
 
-        } else {
+            const player_name = document.getElementById('player_info');
+
             const table = document.querySelector('#table1 .google-visualization-table > div');
             const scrollState = table.scrollTop
 
             table1.style.setProperty('display', 'none');
             table2.style.setProperty('display', 'block');
-            switch_table_button.innerHTML = "Post trade deadline stats"
 
             const new_table = document.querySelector('#table2 .google-visualization-table > div')
             new_table.scrollTop = scrollState
 
             const chart_container = document.getElementById('column_chart');
             if (chart_container.classList.contains('drawn')) {
-                drawColumnChart(player_name.innerHTML, '2/6/2025', database).then()
+                drawColumnChart(player_name.innerHTML, window.loaderAPI.trade_deadline_date, database).then()
             }
         }
     })
@@ -831,7 +836,7 @@ window.loaderAPI.load((e, raw_table_data, raw_deadline_table_data, database) => 
     })
 
     // add custom header
-    addHeader(table_container, switch_table_button, refresh_button)
+    addHeader(table_container)
 
     // button to switch pie chart
     const switch_pie_button = document.getElementById('switch_pie');

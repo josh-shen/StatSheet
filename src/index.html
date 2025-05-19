@@ -5,12 +5,18 @@
         <meta http-equiv="Content-Security-Policy" charset="utf-8"/>
         <script type="text/javascript" src="https://www.gstatic.com/charts/loader.js"></script>
         <script src="renderer.js"></script>
-        <link rel="stylesheet" href="styles.css">
+        <link rel="stylesheet" href="styles/styles.css">
+        <link rel="stylesheet" href="styles/header.css">
+        <link rel="stylesheet" href="styles/buttons.css">
+        <link rel="stylesheet" href="styles/charts.css">
     </head>
     <body>
-        <div id="top_bar">
-            <button id="refresh_button">Refresh</button>
-            <button id="switch_table"></button>
+        <div id="top_bar"></div>
+        <div id="button_bar">
+            <button id="refresh_button" class="button">Refresh</button>
+            <span id="description">Season segment</span>
+            <button id="full_season" class="selected">Full Season</button>
+            <button id="post_trade_deadline">Post-Trade Deadline</button>
         </div>
         <div id="main">
             <div id="table_container">
@@ -24,7 +30,7 @@
                 <div id="pie_chart2" style="visibility: hidden"></div>
                 <div id="column_chart" class="none"></div>
                 <div id="controls">
-                    <button id="switch_pie"></button>
+                    <button id="switch_pie" class="button"></button>
                     <div id="player_info"></div>
                 </div>
             </div>

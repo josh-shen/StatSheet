@@ -1,0 +1,45 @@
+/* charts containers */
+#charts_container {
+    display: flex;
+    height: calc(50% - 26px);
+    width: 97%;
+    border-radius: 14px 14px 0 0;
+    background-color: #FFF;
+    position: absolute;
+    bottom: 0;
+    box-shadow: rgba(0, 0, 0, 0.35) 0 5px 15px;
+    box-sizing: border-box;
+    overflow:  hidden;
+    transition: transform 0.3s ease-in-out;
+    transform: translateY(calc(100% - 2rem));
+}
+#charts_container.expanded {
+    box-shadow: rgba(149, 157, 165, 0.2) 0 8px 24px;
+    transform: translateY(0);
+}
+/* pie chart */
+#pie_chart1, #pie_chart2 {
+    width: 50%;
+    height: 100%;
+    padding: 15px;
+    position: absolute;
+    top: 0;
+    left: 0;
+    box-sizing: border-box;
+}
+/* column chart */
+#column_chart {
+    width: 50%;
+    height: 100%;
+    padding: 15px;
+    position: absolute;
+    top: 0;
+    right: 0;
+    box-sizing: border-box;
+}
+
+#controls {
+    position: absolute;
+    z-index: 10;
+    bottom: 0;
+}

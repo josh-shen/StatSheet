@@ -1,0 +1,37 @@
+/* buttons */
+#button_bar {
+    display: flex;
+    padding: 10px 1.5% 0 1.5%;
+    height: 32px;
+    align-items: center;
+    gap: 16px;
+}
+button {
+    position: relative;
+    border-radius: 8px;
+    border-style: none;
+    box-sizing: border-box;
+    padding: 8px 16px;
+    background-color: white;
+    text-align: center;
+    cursor: pointer;
+}
+button:hover {
+    background-color: #d3d3d3;
+}
+button:active {
+    background-color: #BBC4CA;
+}
+button.selected {
+    background-color: #2668cc;
+}
+
+/* chart butons */
+#toggle_charts {
+    width: calc(100% + 20px);
+    height: 2rem;
+    cursor: pointer;
+    z-index: 10;
+    border: none;
+    background-color: #FFF;
+}
