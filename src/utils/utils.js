@@ -10,13 +10,40 @@ function parse_lineups(tables) {
             if (headers[j].textContent.includes(" @ ")) {
                 let s = headers[j].textContent.split(" ");
 
-                teams['start_time'] = `${s[66]} ${s[67]} ${s[68].trim()}`
+                // s[66] time, s[67] AM/PM
+                const time_string = s[66].split(":")
+                const UTCTime = new Date()
+
+                if (s[67] !== 'PM') {
+                    UTCTime.setUTCHours(Number(time_string[0]) + 4) // original time is in eastern time, +4 to UTC
+                } else {
+                    UTCTime.setUTCHours(Number(time_string[0]) + 16) // +4 to UTC, +12 for 24hr format
+                }
+                UTCTime.setUTCMinutes(Number(time_string[1]))
+
+                // double zeros
+                let hours, minutes
+                if (UTCTime.getHours() < 10) {
+                    hours = `0${UTCTime.getHours()}`
+                } else {
+                    hours = UTCTime.getHours()
+                }
+                if (UTCTime.getMinutes() === 0) {
+                    minutes = `0${UTCTime.getMinutes()}`
+                } else {
+                    minutes = UTCTime.getMinutes()
+                }
+                teams['start_time'] = `${hours}:${minutes}`
 
                 teams['away'] = normalize_team(s[32])
                 teams['home'] = normalize_team(s[34].trim())
 
                 let lines = headers[j].querySelector("small")
-                if (!lines) {
+                if (headers[j].textContent.includes("Final")) {
+                    teams['favorite'] = 'FINAL'
+                    teams['spread'] = 0
+                    teams['total'] = 'FINAL'
+                } else if (!lines) { // headers[j].textContent.includes("Live") ?
                     teams['favorite'] = 'LIVE'
                     teams['spread'] = 0
                     teams['total'] = 'LIVE'
