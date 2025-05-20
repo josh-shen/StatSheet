@@ -4,7 +4,6 @@ html, body {
     padding: 0;
     font-family: 'Arial', sans-serif;
     font-size: 10pt;
-    background-color: #F0F4F9;
 }
 div::-webkit-scrollbar {
     display: none;
@@ -78,10 +77,13 @@ div::-webkit-scrollbar {
     overflow-y: auto;
     order: 2;
 }
+.google-visualization-table-table {
+    table-layout: fixed !important; /* Critical for width control */
+}
 
 /* table header */
 .gtable_header {
-    display: none;
+    visibility: hidden;
 }
 #header {
     display: flex;
@@ -121,6 +123,9 @@ div::-webkit-scrollbar {
 /* table cells */
 .table_cell {
     border: none !important;
+    overflow: hidden !important;
+    text-overflow: ellipsis !important;
+    white-space: nowrap !important;
 }
 td:focus {
     background-color: #FFF !important;

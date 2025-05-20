@@ -164,7 +164,6 @@ function drawTable(data, database, options, table_id) {
         const datatable = new google.visualization.arrayToDataTable(data_slice);
 
         formatCells(i, datatable, database)
-        setWidths(datatable)
 
         const table_div = document.createElement('div')
         table_div.classList.add(`t-${i}`)
@@ -313,16 +312,18 @@ function formatCells(table_index, data, database) {
     }
 }
 
-function setWidths(data) {
-    data.setProperty(0, 0, 'className', 'name_cell header_xl')
+function setWidths(table_id) {
+    const header_cells = document.querySelectorAll(`#${table_id} .gtable_header`);
+
+    header_cells[0].classList.add('header_xl');
     for (const c of [1, 15, 20, 21, 22, 24, 27]) {
-        data.setProperty(0, c, 'className', `header_l`)
+        header_cells[c].classList.add('header_l')
     }
     for (const c of [2, 3, 4, 8, 10, 12, 13, 14, 16, 23, 25, 28, 29, 30]) {
-        data.setProperty(0, c, 'className', 'header_m')
+        header_cells[c].classList.add('header_m')
     }
     for (const c of [5, 6, 7, 9, 11, 17, 18, 19, 26]) {
-        data.setProperty(0, c, 'className', 'header_s')
+        header_cells[c].classList.add('header_s')
     }
 }
 
@@ -633,10 +634,18 @@ window.loaderAPI.load((e, raw_table_data, raw_deadline_table_data, database) => 
         sort: 'disable',
         width: '100%'
     }
-    google.charts.setOnLoadCallback(function() { drawTable(raw_table_data, database, options, 'table1') });
+    google.charts.setOnLoadCallback(function() { 
+        drawTable(raw_table_data, database, options, 'table1') 
+        
+        // set column widths
+        setWidths('table1')
+    });
     google.charts.setOnLoadCallback(function() {
         drawTable(raw_deadline_table_data, database, options, 'table2')
 
+        // set column widths
+        setWidths('table2')
+        
         // dropdown checkbox list to select tables
         const table_options = document.getElementById('dropdown_menu');
         const tables = document.querySelectorAll('[class*="t-"]');
