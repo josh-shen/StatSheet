@@ -24,7 +24,6 @@ async function createWindow() {
         height: 900,
         show: false,
         autoHideMenuBar: true,
-        //resizable: false,
         webPreferences: {
             preload: join(__dirname, './preload.js'),
             contextIsolation: true,
@@ -81,9 +80,8 @@ async function createWindow() {
             const response = await axios(options);
             const { JSDOM } = require('jsdom');
             const dom = new JSDOM(response.data);
-            const tables = dom.window.document.querySelectorAll('.datatable');
 
-            return parse_lineups(tables)
+            return parse_lineups(dom)
         } catch (error) {
             const error_info = {
                 errno: error.errno,
@@ -99,6 +97,7 @@ async function createWindow() {
         })
         .then(() => {
             load_window.close()
+            win.maximize()
             win.show()
         })
 }

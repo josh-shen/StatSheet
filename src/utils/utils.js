@@ -1,11 +1,18 @@
-function parse_lineups(tables) {
+function parse_lineups(dom) {
     const lineups = []
+
+    const tables = dom.window.document.querySelectorAll(".datatable");
 
     for (let i = 0; i < tables.length; i++) {
         const headers = tables[i].getElementsByTagName("th");
 
         const teams = {}
         teams['injury'] = []
+
+        const header = dom.window.document.querySelector("h1")
+        const header_string = header.textContent.split(" ")
+        teams['date'] = header_string[4]
+
         for (let j = 0; j < headers.length; j++) {
             if (headers[j].textContent.includes(" @ ")) {
                 let s = headers[j].textContent.split(" ");

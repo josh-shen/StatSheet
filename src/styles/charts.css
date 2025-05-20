@@ -17,6 +17,7 @@
     box-shadow: rgba(149, 157, 165, 0.2) 0 8px 24px;
     transform: translateY(0);
 }
+
 /* pie chart */
 #pie_chart1, #pie_chart2 {
     width: 50%;
@@ -27,6 +28,7 @@
     left: 0;
     box-sizing: border-box;
 }
+
 /* column chart */
 #column_chart {
     width: 50%;

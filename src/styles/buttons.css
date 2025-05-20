@@ -1,4 +1,3 @@
-/* buttons */
 #button_bar {
     display: flex;
     padding: 10px 1.5% 0 1.5%;
@@ -6,24 +5,57 @@
     align-items: center;
     gap: 16px;
 }
-button {
+
+/* default button */
+.button {
     position: relative;
     border-radius: 8px;
-    border-style: none;
     box-sizing: border-box;
     padding: 8px 16px;
-    background-color: white;
+    border: 1px solid #BBC4CA;
+    background-color: #F7F8FA;
     text-align: center;
     cursor: pointer;
+    font-size: 8pt;
+    color: #6C707E;
 }
-button:hover {
-    background-color: #d3d3d3;
+.button:hover {
+    background-color: #E6E6E8;
 }
-button:active {
-    background-color: #BBC4CA;
+.button:active {
+    background-color: #E6E6E8;
 }
-button.selected {
-    background-color: #2668cc;
+.button.selected {
+    background-color: #3574F0;
+    color: white;
+}
+
+/* dropdown checkbox */
+#table_selector {
+    position: relative;
+    width: 10rem;
+}
+#dropdown_button {
+    width: 100%
+}
+#dropdown_menu {
+    position: absolute;
+    display: none;
+    margin-top: 4px;
+    border-radius: 8px;
+    border: 1px solid #BBC4CA;
+    box-sizing: border-box;
+    background-color: #F7F8FA;
+    width: 100%;
+    font-size: 9pt;
+    color: #6C707E;
+    z-index: 10;
+}
+.dropdown_item {
+    padding: 4px 8px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
 }
 
 /* chart butons */

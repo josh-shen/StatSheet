@@ -1,4 +1,3 @@
-/* top header game schedule bar */
 #top_bar {
     display: flex;
     flex-wrap: wrap;
@@ -6,28 +5,39 @@
     gap: 10px;
     padding: 0 1.5% 0 1.5%;
 }
+
+/* game matchup cards */
 .matchup_card {
     display: flex;
-    flex-direction: row;
-    min-width: 12rem;
-    max-width: 12rem;
+    flex-direction: column;
+    min-width: 14rem;
+    max-width: 14rem;
     background-color: white;
     border-radius: 4px;
     box-shadow: rgba(149, 157, 165, 0.2) 0 8px 24px;
-    align-items: center;
     justify-content: center;
-    gap: 10px;
     z-index: 10;
 }
-.col1 {
-    text-align: right;
-    padding: 8px 0 4px 0;
+.top_row {
+    display: flex;
+    flex-direction: row;
+    padding: 2px;
+    justify-content: space-between;
 }
-.col2 {
-    padding: 8px 0 4px 0;
+.bottom_row {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    justify-content: center;
+    padding: 2px 0 8px 0;
+    gap: 20px;
 }
 .away, .home {
     font-weight: bold;
+}
+.date {
+    color: #555;
+    font-size: 7pt;
 }
 .time {
     padding: 3px;
@@ -43,7 +53,17 @@
     background-color: #C94F4F;
     color: white;
 }
-.spread, .total {
+.spread {
+    width: 44px;
+    padding-left: 4px;
     color: #555;
+    text-align: left;
+    font-size: 7pt;
+}
+.total {
+    width: 44px;
+    padding-right: 4px;
+    color: #555;
+    text-align: right;
     font-size: 7pt;
 }

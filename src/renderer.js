@@ -39,6 +39,7 @@ const RGB_Log_Blend=(value, low, mid, floor, scale)=>{
 
 let data_cache = {}
 
+/* top bar */
 function createScheduleBar(lineups) {
     const top_bar = document.getElementById('top_bar')
 
@@ -46,11 +47,11 @@ function createScheduleBar(lineups) {
         let matchup_card
 
         if (game[5]['favorite'] === 'FINAL') {
-            matchup_card = createMatchupCard(game[5]['away'], game[5]['home'], 'FINAL', '', '')
+            matchup_card = createMatchupCard(game[5]['away'], game[5]['home'], game[5]['date'], 'FINAL', '', '')
         } else if (game[5]['favorite'] === 'LIVE') {
-            matchup_card = createMatchupCard(game[5]['away'], game[5]['home'], 'LIVE', '', '')
+            matchup_card = createMatchupCard(game[5]['away'], game[5]['home'], game[5]['date'], 'LIVE', '', '')
         } else {
-            matchup_card = createMatchupCard(game[5]['away'], game[5]['home'], game[5]['start_time'], `${game[5]['favorite']} -${game[5]['spread']}`, `O/U${game[5]['total']}`)
+            matchup_card = createMatchupCard(game[5]['away'], game[5]['home'], game[5]['date'], game[5]['start_time'], `${game[5]['favorite']} -${game[5]['spread']}`, `O/U${game[5]['total']}`)
         }
 
         matchup_card.setAttribute('style', `border-left: 5px solid var(--${game[5]['away'].toLowerCase()}-alternate); border-right: 5px solid var(--${game[5]['home'].toLowerCase()})`)
@@ -59,10 +60,30 @@ function createScheduleBar(lineups) {
     })
 }
 
-function createMatchupCard(away, home, time, spread, total) {
+function createMatchupCard(away, home, date, time, spread, total) {
     const matchup_card = document.createElement('div')
     matchup_card.classList.add('matchup_card')
 
+    // top row (betting lines, date)
+    const spread_div = document.createElement('div')
+    spread_div.classList.add('spread')
+    spread_div.textContent = spread
+
+    const total_div = document.createElement('div')
+    total_div.classList.add('total')
+    total_div.textContent = total
+
+    const date_div = document.createElement('div')
+    date_div.classList.add('date')
+    date_div.textContent = date
+
+    const top_row = document.createElement('div')
+    top_row.classList.add('top_row')
+    top_row.appendChild(spread_div)
+    top_row.appendChild(date_div)
+    top_row.appendChild(total_div)
+
+    // bottom row (teams, time)
     const away_div = document.createElement('div')
     away_div.classList.add('away')
     away_div.textContent = away
@@ -75,29 +96,89 @@ function createMatchupCard(away, home, time, spread, total) {
     time_div.classList.add('time')
     time_div.textContent = time
 
-    const spread_div = document.createElement('div')
-    spread_div.classList.add('spread')
-    spread_div.textContent = spread
+    const bottom_row = document.createElement('div')
+    bottom_row.classList.add('bottom_row')
+    bottom_row.appendChild(away_div)
+    bottom_row.appendChild(time_div)
+    bottom_row.appendChild(home_div)
 
-    const total_div = document.createElement('div')
-    total_div.classList.add('total')
-    total_div.textContent = total
-
-    const col1 = document.createElement('div')
-    col1.classList.add('col1')
-    col1.appendChild(away_div)
-    col1.appendChild(spread_div)
-
-    const col2 = document.createElement('div')
-    col2.classList.add('col2')
-    col2.appendChild(home_div)
-    col2.appendChild(total_div)
-
-    matchup_card.appendChild(col1)
-    matchup_card.appendChild(time_div)
-    matchup_card.appendChild(col2)
+    matchup_card.appendChild(top_row)
+    matchup_card.appendChild(bottom_row)
 
     return matchup_card
+}
+
+/* table header */
+function addHeader(table_container){
+    const header = document.getElementById('header')
+
+    header.appendChild(createHeaderCell('header_xl', 'NAME', null));
+    header.appendChild(createHeaderCell('', 'POINTS LINE', 'min-width: 10%; max-width: 10%; width: 10%;'));
+    header.appendChild(createHeaderCell('header_m', 'MIN', null));
+    header.appendChild(createHeaderCell('header_s', 'PTS', null));
+    header.appendChild(createHeaderCell('header_s', '', null));
+    header.appendChild(createHeaderCell('header_s', 'FGA', null));
+    header.appendChild(createHeaderCell('header_m', 'FG%', null));
+    header.appendChild(createHeaderCell('header_s', '3PA', null));
+    header.appendChild(createHeaderCell('header_m', '3P%', null));
+    header.appendChild(createHeaderCell('header_s', 'FTA', null));
+    header.appendChild(createHeaderCell('header_m', 'FT%', null));
+    header.appendChild(createHeaderCell('header_m', '%PTS', null));
+    header.appendChild(createHeaderCell('header_m', 'USG%', null));
+    header.appendChild(createHeaderCell('', 'REBOUNDS LINE', 'min-width: 7%; max-width: 7%; width: 7%'));
+    header.appendChild(createHeaderCell('header_s', 'OREB', null));
+    header.appendChild(createHeaderCell('header_s', 'DREB', null));
+    header.appendChild(createHeaderCell('header_s', 'REB', null));
+    header.appendChild(createHeaderCell('header_l', 'CHANCES', null));
+    header.appendChild(createHeaderCell('header_l', 'CHANCES%', null));
+    header.appendChild(createHeaderCell('header_l', 'CONTESTED%', null));
+    header.appendChild(createHeaderCell('header_m', '%REB'), null);
+    header.appendChild(createHeaderCell('', 'ASSISTS LINE', 'min-width: 7%; max-width: 7%; width: 7%'));
+    header.appendChild(createHeaderCell('header_s', 'AST', null));
+    header.appendChild(createHeaderCell('header_l', 'POTENTIALS', null));
+    header.appendChild(createHeaderCell('header_m', 'PASSES', null));
+    header.appendChild(createHeaderCell('header_m', 'AST/PASS', null));
+    header.appendChild(createHeaderCell('header_m', '%AST', null));
+
+    table_container.appendChild(header);
+}
+
+function createHeaderCell(size, content, attributes) {
+    const cell = document.createElement('div');
+    cell.classList.add('header_cell');
+    if (attributes) {
+        cell.setAttribute('style', attributes);
+    } else {
+        cell.classList.add(size);
+    }
+    cell.textContent = content;
+
+    return cell;
+}
+
+/* table */
+function drawTable(data, database, options, table_id) {
+    for (let i = 0; i < data.length / 12; i++) { // split data into slices for each game
+        const data_slice = data.slice(i * 12, (i * 12) + 12)
+
+        const datatable = new google.visualization.arrayToDataTable(data_slice);
+
+        formatCells(i, datatable, database)
+        setWidths(datatable)
+
+        const table_div = document.createElement('div')
+        table_div.classList.add(`t-${i}`)
+        table_div.dataset.game = `${database['lineups'][i][5]['away']} @ ${database['lineups'][i][5]['home']}`
+
+        const table = new google.visualization.Table(table_div);
+        table.draw(datatable, options);
+
+        const table_container = document.getElementById(table_id);
+        table_container.appendChild(table_div);
+
+        // allow cell editing
+        table_div.addEventListener('click', e => editCells(e, i))
+    }
 }
 
 function formatCells(table_index, data, database) {
@@ -233,208 +314,19 @@ function formatCells(table_index, data, database) {
 }
 
 function setWidths(data) {
-    data.setProperty(0, 0, 'className', `name_cell header_xl`)
+    data.setProperty(0, 0, 'className', 'name_cell header_xl')
     for (const c of [1, 15, 20, 21, 22, 24, 27]) {
         data.setProperty(0, c, 'className', `header_l`)
     }
     for (const c of [2, 3, 4, 8, 10, 12, 13, 14, 16, 23, 25, 28, 29, 30]) {
-        data.setProperty(0, c, 'className', `header_m`)
+        data.setProperty(0, c, 'className', 'header_m')
     }
     for (const c of [5, 6, 7, 9, 11, 17, 18, 19, 26]) {
-        data.setProperty(0, c, 'className', `header_s`)
+        data.setProperty(0, c, 'className', 'header_s')
     }
 }
 
-function drawTable(data, database, options, table_id) {
-    for (let i = 0; i < data.length / 12; i++) { // split data into slices for each game
-        const data_slice = data.slice(i * 12, (i * 12) + 12)
-
-        const datatable = new google.visualization.arrayToDataTable(data_slice);
-
-        formatCells(i, datatable, database)
-        setWidths(datatable)
-
-        const table_div = document.createElement('div')
-        table_div.classList.add(`t-${i}`)
-
-        const table = new google.visualization.Table(table_div);
-        table.draw(datatable, options);
-
-        const table_container = document.getElementById(table_id);
-        table_container.appendChild(table_div);
-
-        // allow cell editing
-        table_div.addEventListener('click', e => editCells(e, i))
-    }
-}
-
-function addHeader(table_container){
-    const header = document.getElementById('header')
-
-    const name = document.createElement('div');
-    name.classList.add('header_cell')
-    name.classList.add('header_xl');
-    name.textContent = 'NAME';
-    header.appendChild(name);
-
-    const points_line = document.createElement('div');
-    points_line.classList.add('header_cell')
-    points_line.setAttribute('style', 'min-width: 10%; max-width: 10%; width: 10%;');
-    points_line.textContent = 'POINTS LINE';
-    header.appendChild(points_line);
-
-    const minutes = document.createElement('div');
-    minutes.classList.add('header_cell')
-    minutes.classList.add('header_m');
-    minutes.textContent = 'MIN';
-    header.appendChild(minutes);
-
-    const points = document.createElement('div');
-    points.classList.add('header_cell')
-    points.classList.add('header_s');
-    points.textContent = 'PTS';
-    header.appendChild(points);
-
-    const projected = document.createElement('div');
-    projected.classList.add('header_cell')
-    projected.classList.add('header_s');
-    header.appendChild(projected);
-
-    const fga = document.createElement('div');
-    fga.classList.add('header_cell')
-    fga.classList.add('header_s');
-    fga.textContent = 'FGA';
-    header.appendChild(fga);
-
-    const fgp = document.createElement('div');
-    fgp.classList.add('header_cell')
-    fgp.classList.add('header_m');
-    fgp.textContent = 'FG%';
-    header.appendChild(fgp);
-
-    const tpa = document.createElement('div');
-    tpa.classList.add('header_cell')
-    tpa.classList.add('header_s');
-    tpa.textContent = '3PA';
-    header.appendChild(tpa);
-
-    const tpp = document.createElement('div');
-    tpp.classList.add('header_cell')
-    tpp.classList.add('header_m');
-    tpp.textContent = '3P%';
-    header.appendChild(tpp);
-
-    const fta = document.createElement('div');
-    fta.classList.add('header_cell')
-    fta.classList.add('header_s');
-    fta.textContent = 'FTA';
-    header.appendChild(fta);
-
-    const ftp = document.createElement('div');
-    ftp.classList.add('header_cell')
-    ftp.classList.add('header_m');
-    ftp.textContent = 'FT%';
-    header.appendChild(ftp);
-
-    const team_points = document.createElement('div');
-    team_points.classList.add('header_cell')
-    team_points.classList.add('header_m');
-    team_points.textContent = '%PTS';
-    header.appendChild(team_points);
-
-    const usage = document.createElement('div');
-    usage.classList.add('header_cell')
-    usage.classList.add('header_m');
-    usage.textContent = 'USG%';
-    header.appendChild(usage);
-
-    const rebounds_line = document.createElement('div');
-    rebounds_line.classList.add('header_cell')
-    rebounds_line.setAttribute('style', 'min-width: 7%; max-width: 7%; width: 7%;');
-    rebounds_line.textContent = 'REBOUNDS LINE';
-    header.appendChild(rebounds_line);
-
-    const o_reb = document.createElement('div');
-    o_reb.classList.add('header_cell')
-    o_reb.classList.add('header_s');
-    o_reb.textContent = 'OREB';
-    header.appendChild(o_reb);
-
-    const d_reb = document.createElement('div');
-    d_reb.classList.add('header_cell')
-    d_reb.classList.add('header_s');
-    d_reb.textContent = 'DREB';
-    header.appendChild(d_reb);
-
-    const rebounds = document.createElement('div');
-    rebounds.classList.add('header_cell')
-    rebounds.classList.add('header_s');
-    rebounds.textContent = 'REB';
-    header.appendChild(rebounds);
-
-    const rebound_chances = document.createElement('div');
-    rebound_chances.classList.add('header_cell')
-    rebound_chances.classList.add('header_l');
-    rebound_chances.textContent = 'CHANCES';
-    header.appendChild(rebound_chances);
-
-    const percent_reb_chances = document.createElement('div');
-    percent_reb_chances.classList.add('header_cell')
-    percent_reb_chances.classList.add('header_l');
-    percent_reb_chances.textContent = 'CHANCES%';
-    header.appendChild(percent_reb_chances);
-
-    const contested = document.createElement('div');
-    contested.classList.add('header_cell')
-    contested.classList.add('header_l');
-    contested.textContent = 'CONTESTED%';
-    header.appendChild(contested);
-
-    const team_rebounds = document.createElement('div');
-    team_rebounds.classList.add('header_cell')
-    team_rebounds.classList.add('header_m');
-    team_rebounds.textContent = '%REB';
-    header.appendChild(team_rebounds);
-
-    const assists_line = document.createElement('div');
-    assists_line.classList.add('header_cell')
-    assists_line.setAttribute('style', 'min-width: 7%; max-width: 7%; width: 7%;');
-    assists_line.textContent = 'ASSISTS LINE';
-    header.appendChild(assists_line);
-
-    const assists = document.createElement('div');
-    assists.classList.add('header_cell')
-    assists.classList.add('header_s');
-    assists.textContent = 'AST';
-    header.appendChild(assists);
-
-    const potential_assists = document.createElement('div');
-    potential_assists.classList.add('header_cell');
-    potential_assists.classList.add('header_l');
-    potential_assists.textContent = 'POTENTIALS';
-    header.appendChild(potential_assists);
-
-    const passes = document.createElement('div');
-    passes.classList.add('header_cell');
-    passes.classList.add('header_m');
-    passes.textContent = 'PASSES';
-    header.appendChild(passes);
-
-    const assist_pass_ratio = document.createElement('div');
-    assist_pass_ratio.classList.add('header_cell');
-    assist_pass_ratio.classList.add('header_m');
-    assist_pass_ratio.textContent = 'AST/PASS';
-    header.appendChild(assist_pass_ratio);
-
-    const team_assists = document.createElement('div');
-    team_assists.classList.add('header_cell');
-    team_assists.classList.add('header_m');
-    team_assists.textContent = '%AST';
-    header.appendChild(team_assists);
-
-    table_container.appendChild(header);
-}
-
+/* table cell editing */
 function editCells(e, i) {
     const cell = e.target.closest('td')
     if (!cell) return
@@ -510,6 +402,7 @@ function updateTable(sender, i, r, c){
     updateCell(sender, tbody2, r, c)
 }
 
+/* pie chart and column chart */
 async function handleNameClick(e, database) {
     const target = e.target
     if (target.classList.contains('name_cell') && target.textContent) {
@@ -729,19 +622,10 @@ window.loaderAPI.load((e, raw_table_data, raw_deadline_table_data, database) => 
     // create schedule bar
     createScheduleBar(database['lineups'])
 
-    // chart container toggle button
-    const toggle_button = document.getElementById('toggle_charts')
-    const table_container = document.getElementById('table_container')
-    const charts_container = document.getElementById('charts_container')
-    toggle_button.addEventListener('click', function () {
-        table_container.classList.toggle('expanded')
-        charts_container.classList.toggle('expanded')
-    })
-
     google.charts.load('current', {'packages':['table']});
     google.charts.load('current', {'packages':['corechart']});
 
-    // create data grids
+    // create tables
     const options = {
         showRowNumber: false,
         allowHtml: true,
@@ -750,7 +634,51 @@ window.loaderAPI.load((e, raw_table_data, raw_deadline_table_data, database) => 
         width: '100%'
     }
     google.charts.setOnLoadCallback(function() { drawTable(raw_table_data, database, options, 'table1') });
-    google.charts.setOnLoadCallback(function() { drawTable(raw_deadline_table_data, database, options, 'table2') });
+    google.charts.setOnLoadCallback(function() {
+        drawTable(raw_deadline_table_data, database, options, 'table2')
+
+        // dropdown checkbox list to select tables
+        const table_options = document.getElementById('dropdown_menu');
+        const tables = document.querySelectorAll('[class*="t-"]');
+        const added_options = []
+
+        tables.forEach(table => {
+            const game = table.dataset.game
+
+            if (!added_options.includes(game)) {
+                const option = document.createElement('div');
+                option.className = 'dropdown_item'
+
+                const checkbox = document.createElement('input');
+                checkbox.type = 'checkbox';
+                checkbox.checked = true;
+                checkbox.id = game;
+                checkbox.addEventListener('change', () => {
+                    const matching_tables = document.querySelectorAll(`[data-game="${game}"]`);
+                    matching_tables.forEach(table => {
+                        table.style.display = table.style.display === 'none' ? 'block' : 'none';
+                    })
+                })
+
+                const label = document.createElement('label');
+                label.textContent = game;
+
+                option.appendChild(checkbox);
+                option.appendChild(label);
+                table_options.appendChild(option);
+
+                added_options.push(game);
+            }
+        })
+
+        // button to show dropdown menu
+        const dropdown_button = document.getElementById('dropdown_button');
+        dropdown_button.addEventListener('click', function() {
+            console.log('clicked')
+            table_options.style.display = table_options.style.display === 'none' ? 'block' : 'none';
+            dropdown_button.classList.toggle('selected')
+        });
+    });
 
     const table1 = document.getElementById('table1');
     const table2 = document.getElementById('table2');
@@ -836,7 +764,16 @@ window.loaderAPI.load((e, raw_table_data, raw_deadline_table_data, database) => 
     })
 
     // add custom header
+    const table_container = document.getElementById('table_container')
     addHeader(table_container)
+
+    // chart container toggle button
+    const toggle_button = document.getElementById('toggle_charts')
+    const charts_container = document.getElementById('charts_container')
+    toggle_button.addEventListener('click', function () {
+        table_container.classList.toggle('expanded')
+        charts_container.classList.toggle('expanded')
+    })
 
     // button to switch pie chart
     const switch_pie_button = document.getElementById('switch_pie');

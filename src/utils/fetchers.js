@@ -6,9 +6,8 @@ const {parse_lineups, normalize_name} = require('./utils.js')
 async function fetch_lineups() {
     try {
         const dom = await jsdom.fromURL(LINEUP_ENDPOINT)
-        const tables = dom.window.document.querySelectorAll(".datatable");
 
-        return parse_lineups(tables)
+        return parse_lineups(dom)
     } catch (error) {
         const error_info = {
             errno: error.errno,
