@@ -1,19 +1,18 @@
 #top_bar {
     display: flex;
     flex-wrap: wrap;
-    height: 44px;
+    height: 50px;
     gap: 10px;
-    padding: 0 1.5% 0 1.5%;
+    padding: 8px 1.5% 0 1.5%;
 }
 
 /* game matchup cards */
 .matchup_card {
     display: flex;
     flex-direction: column;
-    min-width: 14rem;
-    max-width: 14rem;
+    width: 15rem;
     background-color: white;
-    border-radius: 4px;
+    border-radius: 8px;
     box-shadow: rgba(149, 157, 165, 0.2) 0 8px 24px;
     justify-content: center;
     z-index: 10;
@@ -23,6 +22,7 @@
     flex-direction: row;
     padding: 2px;
     justify-content: space-between;
+    color: #4C4D50;
 }
 .bottom_row {
     display: flex;
@@ -31,19 +31,20 @@
     justify-content: center;
     padding: 2px 0 8px 0;
     gap: 20px;
+    color: #4C4D50;
 }
 .away, .home {
+    width: 30px;
     font-weight: bold;
 }
 .date {
-    color: #555;
     font-size: 7pt;
 }
 .time {
-    padding: 3px;
+    padding: 4px 5px 3px 3px;
     border-radius: 3px;
     font-size: 8pt;
-    background-color: #333;
+    background-color: #4C4D50;
     color: white;
 }
 .live {
@@ -56,14 +57,13 @@
 .spread {
     width: 44px;
     padding-left: 4px;
-    color: #555;
     text-align: left;
     font-size: 7pt;
+    font-weight: 700;
 }
 .total {
     width: 44px;
     padding-right: 4px;
-    color: #555;
     text-align: right;
     font-size: 7pt;
 }

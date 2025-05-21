@@ -4,6 +4,8 @@
     height: 32px;
     align-items: center;
     gap: 16px;
+    font-size: 9pt;
+    color: #6C707E;
 }
 
 /* default button */
@@ -12,21 +14,24 @@
     border-radius: 8px;
     box-sizing: border-box;
     padding: 8px 16px;
-    border: 1px solid #BBC4CA;
-    background-color: #F7F8FA;
+    background-color: white;
+    border: 2px solid #DBDCDE;
     text-align: center;
     cursor: pointer;
     font-size: 8pt;
     color: #6C707E;
 }
 .button:hover {
-    background-color: #E6E6E8;
+    background-color: #DBDCDE;
+    border: 2px solid #DBDCDE;
 }
 .button:active {
-    background-color: #E6E6E8;
+    background-color: #DBDCDE;
+    border: 2px solid #DBDCDE;
 }
 .button.selected {
-    background-color: #3574F0;
+    background-color: #3573F0;
+    border: 2px solid #3573F0;
     color: white;
 }
 
@@ -43,9 +48,9 @@
     display: none;
     margin-top: 4px;
     border-radius: 8px;
-    border: 1px solid #BBC4CA;
+    background-color: white;
+    border: 2px solid #DBDCDE;
     box-sizing: border-box;
-    background-color: #F7F8FA;
     width: 100%;
     font-size: 9pt;
     color: #6C707E;

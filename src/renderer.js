@@ -54,7 +54,7 @@ function createScheduleBar(lineups) {
             matchup_card = createMatchupCard(game[5]['away'], game[5]['home'], game[5]['date'], game[5]['start_time'], `${game[5]['favorite']} -${game[5]['spread']}`, `O/U${game[5]['total']}`)
         }
 
-        matchup_card.setAttribute('style', `border-left: 5px solid var(--${game[5]['away'].toLowerCase()}-alternate); border-right: 5px solid var(--${game[5]['home'].toLowerCase()})`)
+        //matchup_card.setAttribute('style', `border-left: 5px solid var(--${game[5]['away'].toLowerCase()}-alternate); border-right: 5px solid var(--${game[5]['home'].toLowerCase()})`)
 
         top_bar.appendChild(matchup_card)
     })
@@ -68,6 +68,12 @@ function createMatchupCard(away, home, date, time, spread, total) {
     const spread_div = document.createElement('div')
     spread_div.classList.add('spread')
     spread_div.textContent = spread
+
+    const spread_num = -Number(spread.split(" ")[1])
+    if (spread_num <= 4) spread_div.style.color = green
+    else if (spread_num > 4 && spread_num <= 7) spread_div.style.color = yellow
+    else if (spread_num > 7 && spread_num <= 10) spread_div.style.color = RGB_Log_Blend(0.5, 0, 1, 0, 1)
+    else if (spread_num > 10) spread_div.style.color = red
 
     const total_div = document.createElement('div')
     total_div.classList.add('total')
@@ -229,53 +235,57 @@ function formatCells(table_index, data, database) {
         }
         const mid = (max + min) / 2
         for (let j = 0; j < 11; j++) {
+            if (!data.getValue(j, 0)) continue
+
             const r = j
             const color = RGB_Linear_Shade(data.getValue(r, c), mid, max, 1/(max-mid))
-            data.setProperty(r, c, 'style', `background-color: ${color};`)
+            data.setProperty(r, c, 'style', `background-color: ${color}; !important`)
         }
     }
 
     // full stats colors
     for (let i = 0; i < rows; ++i) {
+        if (!data.getValue(i, 0)) continue
+
         // min/game 18 - 28 - 38
         color = RGB_Log_Blend(data.getValue(i, 4), 18, 28, 10, 0.1)
-        data.setProperty(i, 4, 'style', `background-color: ${color};`)
+        data.setProperty(i, 4, 'style', `background-color: ${color}; !important`)
 
         // fg% 0.34 - 0.44 - 0.54
         color = RGB_Log_Blend(data.getValue(i, 8), 0.34, 0.44, 0.1, 10)
-        data.setProperty(i, 8, 'style', `background-color: ${color};`)
+        data.setProperty(i, 8, 'style', `background-color: ${color}; !important`)
 
         // 3p% 0.23 - 0.33 - 0.43
         color = RGB_Log_Blend(data.getValue(i, 10), 0.23, 0.33, 0.1, 10)
-        data.setProperty(i, 10, 'style', `background-color: ${color};`)
+        data.setProperty(i, 10, 'style', `background-color: ${color}; !important`)
 
         // ft% 0.71 - 0.81 - 0.91
         color = RGB_Log_Blend(data.getValue(i, 12), 0.71, 0.81, 0.1, 10)
-        data.setProperty(i, 12, 'style', `background-color: ${color};  min-width: 3%; max-width: 3%;`)
+        data.setProperty(i, 12, 'style', `background-color: ${color};  min-width: 3%; max-width: 3%; !important`)
 
         // usg% 0.1 - 0.2 - 0.3
         color = RGB_Log_Blend(data.getValue(i, 13) , 0.1, 0.2, 0.1, 10)
-        data.setProperty(i, 13, 'style', `background-color: ${color};`)
+        data.setProperty(i, 13, 'style', `background-color: ${color}; !important`)
 
         // %pts 0.1 - 0.2 - 0.3
         color = RGB_Log_Blend(data.getValue(i, 14) , 0.1, 0.2, 0.1, 10)
-        data.setProperty(i, 14, 'style', `background-color: ${color};`)
+        data.setProperty(i, 14, 'style', `background-color: ${color}; !important`)
 
         // %reb 0.1 - 0.2 - 0.3
         color = RGB_Log_Blend(data.getValue(i, 23) , 0.1, 0.2, 0.1, 10)
-        data.setProperty(i, 23, 'style', `background-color: ${color};`)
+        data.setProperty(i, 23, 'style', `background-color: ${color}; !important`)
 
         // passes 20 - 40 - 60 (r, c=24)
         color = RGB_Log_Blend(data.getValue(i, 28), 20, 40, 20, 0.05)
-        data.setProperty(i, 28, 'style', `background-color: ${color};`)
+        data.setProperty(i, 28, 'style', `background-color: ${color}; !important`)
 
         // ast/pass 0.03 - 0.11 - 0.19
         color = RGB_Log_Blend(data.getValue(i, 29), 0.03, 0.11, 0.08, 12.5)
-        data.setProperty(i, 29, 'style', `background-color: ${color};`)
+        data.setProperty(i, 29, 'style', `background-color: ${color}; !important`)
 
         // %ast 0.1 - 0.2 - 0.3
         color = RGB_Log_Blend(data.getValue(i, 30) , 0.1, 0.2, 0.1, 10)
-        data.setProperty(i, 30, 'style', `background-color: ${color};`)
+        data.setProperty(i, 30, 'style', `background-color: ${color}; !important`)
 
         // cover -1 points
         if (data.getValue(i, 1) === -1) {
@@ -285,11 +295,11 @@ function formatCells(table_index, data, database) {
         } else if (data.getValue(i, 1)) {
             // line points average difference
             color = RGB_Linear_Shade(data.getValue(i, 2) * -1, 0, 3, 0.33)
-            data.setProperty(i, 2, 'style', `background-color: ${color};`)
+            data.setProperty(i, 2, 'style', `background-color: ${color}; !important`)
 
             // line projected difference
             color = RGB_Linear_Shade(data.getValue(i, 3) * -1, 0, 3, 0.33)
-            data.setProperty(i, 3, 'style', `background-color: ${color};`)
+            data.setProperty(i, 3, 'style', `background-color: ${color}; !important`)
         }
         // cover -1 rebounds
         if (data.getValue(i, 15) === -1) {
@@ -298,7 +308,7 @@ function formatCells(table_index, data, database) {
         } else if (data.getValue(i, 15)) {
             // line rebounds average difference
             color = RGB_Linear_Shade(data.getValue(i, 16) * -1, 0, 3, 0.33)
-            data.setProperty(i, 16, 'style', `background-color: ${color};`)
+            data.setProperty(i, 16, 'style', `background-color: ${color}; !important`)
         }
         // cover -1 assists
         if (data.getValue(i, 24) === -1) {
@@ -307,7 +317,7 @@ function formatCells(table_index, data, database) {
         } else if (data.getValue(i, 24)) {
             // line assists average difference
             color = RGB_Linear_Shade(data.getValue(i, 25) * -1, 0, 3, 0.33)
-            data.setProperty(i, 25, 'style', `background-color: ${color};`)
+            data.setProperty(i, 25, 'style', `background-color: ${color}; !important`)
         }
     }
 }
@@ -769,7 +779,10 @@ window.loaderAPI.load((e, raw_table_data, raw_deadline_table_data, database) => 
 
         // draw new, refreshed tables
         drawTable(raw_table_data, database, options, 'table1')
+        setWidths('table1')
+
         drawTable(raw_deadline_table_data, database, options, 'table2')
+        setWidths('table2')
     })
 
     // add custom header

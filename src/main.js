@@ -97,7 +97,6 @@ async function createWindow() {
         })
         .then(() => {
             load_window.close()
-            win.maximize()
             win.show()
         })
 }
