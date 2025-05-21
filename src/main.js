@@ -62,6 +62,10 @@ async function createWindow() {
     const raw_table_data = create_table(database.lineups, database.stats, database.props)
     const raw_deadline_table_data = create_table(database.lineups, database.stats_after_deadline, database.props)
 
+    ipcMain.handle('create_new_table', (event, lineups, stats, props) => {
+        return create_table(lineups, stats, props)
+    })
+
     ipcMain.handle('make-http-request', async (event, options) => {
         try {
             const response = await axios(options);

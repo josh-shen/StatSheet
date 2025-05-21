@@ -757,6 +757,8 @@ window.loaderAPI.load((e, raw_table_data, raw_deadline_table_data, database) => 
     // button to refresh tables
     const refresh_button = document.getElementById('refresh_button');
     refresh_button.addEventListener('click', async function() {
+        const old_lineups = database['lineups']
+
         database['lineups'] = await window.loaderAPI.makeRequestAndParse({
             url: window.loaderAPI.lineups_endpoint,
             method: 'GET'
@@ -776,6 +778,18 @@ window.loaderAPI.load((e, raw_table_data, raw_deadline_table_data, database) => 
         tables.forEach(table => {
             table.remove()
         })
+
+        // create new raw table data if lineups changed
+        outer: for (let i = 0; i < database['lineups'].length; i++) {
+            for (let j = 0; j < database['lineups'][i].length; j++) {
+                if (typeof database['lineups'][i][j] === 'object') continue
+                if (old_lineups[i][j] !== database['lineups'][i][j]) {
+                    raw_table_data = await window.loaderAPI.create_new_table(database.lineups, database.stats, database.props)
+                    raw_deadline_table_data = await window.loaderAPI.create_new_table(database.lineups, database.stats_after_deadline, database.props)
+                    break outer
+                }
+            }
+        }
 
         // draw new, refreshed tables
         drawTable(raw_table_data, database, options, 'table1')
