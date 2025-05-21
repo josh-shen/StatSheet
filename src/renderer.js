@@ -164,7 +164,8 @@ function createHeaderCell(size, content, attributes) {
 
 /* table */
 function drawTable(data, database, options, table_id) {
-    for (let i = 0; i < data.length / 12; i++) { // split data into slices for each game
+    // split data into slices for each game
+    for (let i = 0; i < data.length / 12; i++) {
         const data_slice = data.slice(i * 12, (i * 12) + 12)
 
         const datatable = new google.visualization.arrayToDataTable(data_slice);

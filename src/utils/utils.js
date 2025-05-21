@@ -50,7 +50,7 @@ function parse_lineups(dom) {
                     teams['favorite'] = 'FINAL'
                     teams['spread'] = 0
                     teams['total'] = 'FINAL'
-                } else if (!lines) { // headers[j].textContent.includes("Live") ?
+                } else if (!lines) {
                     teams['favorite'] = 'LIVE'
                     teams['spread'] = 0
                     teams['total'] = 'LIVE'
