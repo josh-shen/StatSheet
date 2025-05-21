@@ -173,7 +173,7 @@ function drawTable(data, database, options, table_id) {
 
         const table_div = document.createElement('div')
         table_div.classList.add(`t-${i}`)
-        table_div.dataset.game = `${database['lineups'][i][5]['away']} @ ${database['lineups'][i][5]['home']}`
+        table_div.dataset.game = `${database.lineups[i][5]['away']} @ ${database.lineups[i][5]['home']}`
 
         const table = new google.visualization.Table(table_div);
         table.draw(datatable, options);
@@ -558,7 +558,7 @@ function drawPieChart(name, database, pie_id) {
 
 async function drawColumnChart(name, date_from, database) {
     let team
-    for (const group of database['lineups']) {
+    for (const group of database.lineups) {
         if (group.includes(name)) {
             const index = group.indexOf(name)
             if (index < 5) {
@@ -574,8 +574,8 @@ async function drawColumnChart(name, date_from, database) {
     const color = styles.getPropertyValue(`--${team.toLowerCase()}`);
 
     let dataset = []
-    const index = database['stats']['assists'].findIndex(element => element.includes(name))
-    const id = database['stats']['assists'][index][0]
+    const index = database.stats.assists.findIndex(element => element.includes(name))
+    const id = database.stats.assists[index][0]
 
     // check cache if data already exists before fetching
     if (name in data_cache && date_from in data_cache[name]) {
@@ -631,7 +631,7 @@ async function drawColumnChart(name, date_from, database) {
 
 window.loaderAPI.load((e, raw_table_data, raw_deadline_table_data, database) => {
     // create schedule bar
-    createScheduleBar(database['lineups'])
+    createScheduleBar(database.lineups)
 
     google.charts.load('current', {'packages':['table']});
     google.charts.load('current', {'packages':['corechart']});
@@ -693,7 +693,6 @@ window.loaderAPI.load((e, raw_table_data, raw_deadline_table_data, database) => 
         // button to show dropdown menu
         const dropdown_button = document.getElementById('dropdown_button');
         dropdown_button.addEventListener('click', function() {
-            console.log('clicked')
             table_options.style.display = table_options.style.display === 'none' ? 'block' : 'none';
             dropdown_button.classList.toggle('selected')
         });
@@ -757,9 +756,9 @@ window.loaderAPI.load((e, raw_table_data, raw_deadline_table_data, database) => 
     // button to refresh tables
     const refresh_button = document.getElementById('refresh_button');
     refresh_button.addEventListener('click', async function() {
-        const old_lineups = database['lineups']
+        const old_lineups = database.lineups
 
-        database['lineups'] = await window.loaderAPI.makeRequestAndParse({
+        database.lineups = await window.loaderAPI.makeRequestAndParse({
             url: window.loaderAPI.lineups_endpoint,
             method: 'GET'
         })
@@ -771,7 +770,7 @@ window.loaderAPI.load((e, raw_table_data, raw_deadline_table_data, database) => 
         })
 
         // create new, refreshed schedule bar
-        createScheduleBar(database['lineups'])
+        createScheduleBar(database.lineups)
 
         // remove existing tables
         const tables = document.querySelectorAll('[class*="t-"]');
@@ -780,10 +779,10 @@ window.loaderAPI.load((e, raw_table_data, raw_deadline_table_data, database) => 
         })
 
         // create new raw table data if lineups changed
-        outer: for (let i = 0; i < database['lineups'].length; i++) {
-            for (let j = 0; j < database['lineups'][i].length; j++) {
-                if (typeof database['lineups'][i][j] === 'object') continue
-                if (old_lineups[i][j] !== database['lineups'][i][j]) {
+        outer: for (let i = 0; i < database.lineups.length; i++) {
+            for (let j = 0; j < database.lineups[i].length; j++) {
+                if (typeof database.lineups[i][j] === 'object') continue
+                if (old_lineups[i][j] !== database.lineups[i][j]) {
                     raw_table_data = await window.loaderAPI.create_new_table(database.lineups, database.stats, database.props)
                     raw_deadline_table_data = await window.loaderAPI.create_new_table(database.lineups, database.stats_after_deadline, database.props)
                     break outer
