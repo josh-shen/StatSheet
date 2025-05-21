@@ -11,7 +11,7 @@
     box-sizing: border-box;
     overflow:  hidden;
     transition: transform 0.3s ease-in-out;
-    transform: translateY(calc(100% - 2rem));
+    transform: translateY(calc(100% - 30px));
 }
 #charts_container.expanded {
     box-shadow: rgba(149, 157, 165, 0.2) 0 8px 24px;
@@ -22,7 +22,7 @@
 #pie_chart1, #pie_chart2 {
     width: 50%;
     height: 100%;
-    padding: 15px;
+    padding: 24px;
     position: absolute;
     top: 0;
     left: 0;

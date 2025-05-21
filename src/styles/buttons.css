@@ -3,7 +3,7 @@
     padding: 10px 1.5% 0 1.5%;
     height: 32px;
     align-items: center;
-    gap: 16px;
+    gap: 10px;
     font-size: 9pt;
     color: #6C707E;
 }
@@ -22,7 +22,7 @@
     color: #6C707E;
 }
 .button:hover {
-    background-color: #DBDCDE;
+    background-color: #EAEBED;
     border: 2px solid #DBDCDE;
 }
 .button:active {
@@ -33,6 +33,10 @@
     background-color: #3573F0;
     border: 2px solid #3573F0;
     color: white;
+}
+.button:disabled {
+    background-color: #DBDCDE;
+    cursor: not-allowed;
 }
 
 /* dropdown checkbox */
@@ -63,12 +67,19 @@
     align-items: center;
 }
 
+#refresh_button, #post_trade_deadline {
+    margin-right: 6px;
+}
+
 /* chart butons */
 #toggle_charts {
     width: calc(100% + 20px);
-    height: 2rem;
+    height: 30px;
     cursor: pointer;
     z-index: 10;
     border: none;
-    background-color: #FFF;
+    background-color: white;
+}
+#charts_container:hover {
+    transform: translateY(90%);
 }

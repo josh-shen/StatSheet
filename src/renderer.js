@@ -649,13 +649,7 @@ window.loaderAPI.load((e, raw_table_data, raw_deadline_table_data, database) => 
         
         // set column widths
         setWidths('table1')
-    });
-    google.charts.setOnLoadCallback(function() {
-        drawTable(raw_deadline_table_data, database, options, 'table2')
 
-        // set column widths
-        setWidths('table2')
-        
         // dropdown checkbox list to select tables
         const table_options = document.getElementById('dropdown_menu');
         const tables = document.querySelectorAll('[class*="t-"]');
@@ -697,6 +691,15 @@ window.loaderAPI.load((e, raw_table_data, raw_deadline_table_data, database) => 
             dropdown_button.classList.toggle('selected')
         });
     });
+    google.charts.setOnLoadCallback(function() {
+        console.log(database.stats_after_deadline.points.length)
+        if (database.stats_after_deadline.points.length === 0) return
+
+        drawTable(raw_deadline_table_data, database, options, 'table2')
+
+        // set column widths
+        setWidths('table2')
+    });
 
     const table1 = document.getElementById('table1');
     const table2 = document.getElementById('table2');
@@ -707,7 +710,6 @@ window.loaderAPI.load((e, raw_table_data, raw_deadline_table_data, database) => 
 
     // buttons to switch tables and column chart
     const full_season_button = document.getElementById('full_season');
-    const trade_deadline_button = document.getElementById('post_trade_deadline');
     full_season_button.addEventListener('click', function() {
         if (table1.style.display === 'none') {
             full_season_button.classList.toggle('selected');
@@ -730,28 +732,33 @@ window.loaderAPI.load((e, raw_table_data, raw_deadline_table_data, database) => 
             }
         }
     })
-    trade_deadline_button.addEventListener('click', function() {
-        if (table2.style.display === 'none') {
-            full_season_button.classList.toggle('selected');
-            trade_deadline_button.classList.toggle('selected');
+    const trade_deadline_button = document.getElementById('post_trade_deadline');
+    if (database.stats_after_deadline.points.length > 0) {
+        trade_deadline_button.addEventListener('click', function() {
+            if (table2.style.display === 'none') {
+                full_season_button.classList.toggle('selected');
+                trade_deadline_button.classList.toggle('selected');
 
-            const player_name = document.getElementById('player_info');
+                const player_name = document.getElementById('player_info');
 
-            const table = document.querySelector('#table1 .google-visualization-table > div');
-            const scrollState = table.scrollTop
+                const table = document.querySelector('#table1 .google-visualization-table > div');
+                const scrollState = table.scrollTop
 
-            table1.style.setProperty('display', 'none');
-            table2.style.setProperty('display', 'block');
+                table1.style.setProperty('display', 'none');
+                table2.style.setProperty('display', 'block');
 
-            const new_table = document.querySelector('#table2 .google-visualization-table > div')
-            new_table.scrollTop = scrollState
+                const new_table = document.querySelector('#table2 .google-visualization-table > div')
+                new_table.scrollTop = scrollState
 
-            const chart_container = document.getElementById('column_chart');
-            if (chart_container.classList.contains('drawn')) {
-                drawColumnChart(player_name.innerHTML, window.loaderAPI.trade_deadline_date, database).then()
+                const chart_container = document.getElementById('column_chart');
+                if (chart_container.classList.contains('drawn')) {
+                    drawColumnChart(player_name.innerHTML, window.loaderAPI.trade_deadline_date, database).then()
+                }
             }
-        }
-    })
+        })
+    } else {
+        trade_deadline_button.disabled = true
+    }
 
     // button to refresh tables
     const refresh_button = document.getElementById('refresh_button');
