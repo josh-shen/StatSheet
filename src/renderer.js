@@ -415,37 +415,6 @@ function updateTable(sender, i, r, c){
 }
 
 /* pie chart and column chart */
-async function handleNameClick(e, database) {
-    const target = e.target
-    if (target.classList.contains('name_cell') && target.textContent) {
-        const table_container = document.getElementById('table_container')
-        const charts_container = document.getElementById('charts_container')
-        table_container.classList.add('expanded')
-        charts_container.classList.add('expanded')
-
-        let text = target.textContent
-        if (text.includes('GTD')) {
-            text = text.substring(0, text.indexOf('GTD') - 1)
-        }
-
-        const player_div = document.getElementById('player_info');
-        player_div.innerHTML = text;
-
-        // determine which set of stats to fetch for column chart
-        const table = document.getElementById('table1');
-        let date_from
-        if (table.style.display === 'none') {
-            date_from = window.loaderAPI.trade_deadline_date
-        } else {
-            date_from = ''
-        }
-
-        drawPieChart(text, database, 'pie_chart1')
-        drawPieChart(text, database, 'pie_chart2')
-        await drawColumnChart(text, date_from, database)
-    }
-}
-
 function drawPieChart(name, database, pie_id) {
     const dataset = [
         ['Isolation', 0],
@@ -630,6 +599,190 @@ async function drawColumnChart(name, date_from, database) {
     chart_container.className = 'drawn';
 }
 
+/* buttons and event listener functions */
+async function handleNameClick(e, database) {
+    if (e.target.classList.contains('name_cell') && e.target.textContent) {
+        const table_container = document.getElementById('table_container')
+        const charts_container = document.getElementById('charts_container')
+        table_container.classList.add('expanded')
+        charts_container.classList.add('expanded')
+
+        let text = e.target.textContent
+        if (text.includes('GTD')) {
+            text = text.substring(0, text.indexOf('GTD') - 1)
+        }
+
+        const player_div = document.getElementById('player_info');
+        player_div.innerHTML = text;
+
+        // determine which set of stats to fetch for column chart
+        const table = document.getElementById('table1');
+        let date_from
+        if (table.style.display === 'none') {
+            date_from = window.loaderAPI.trade_deadline_date
+        } else {
+            date_from = ''
+        }
+
+        drawPieChart(text, database, 'pie_chart1')
+        drawPieChart(text, database, 'pie_chart2')
+        await drawColumnChart(text, date_from, database)
+    }
+}
+
+function handleShowDropdown(e, table_options) {
+    table_options.style.display = table_options.style.display === 'none' ? 'block' : 'none';
+    e.target.classList.toggle('selected')
+}
+
+async function handleRefresh(raw_table_data, raw_deadline_table_data, database, options) {
+    const old_lineups = database.lineups
+
+    database.lineups = await window.loaderAPI.makeRequestAndParse({
+        url: window.loaderAPI.lineups_endpoint,
+        method: 'GET'
+    })
+
+    // remove matchup cards
+    const matchup_cards = document.querySelectorAll('.matchup_card');
+    matchup_cards.forEach(card => {
+        card.remove()
+    })
+
+    // create new, refreshed schedule bar
+    createScheduleBar(database.lineups)
+
+    // remove existing dropdown itms
+    const items = document.querySelectorAll('.dropdown_item');
+    items.forEach(item => {
+        item.remove()
+    })
+
+    // update table selector dropdown
+    createTableSelector()
+
+    // remove existing tables
+    const tables = document.querySelectorAll('[class*="t-"]');
+    tables.forEach(table => {
+        table.remove()
+    })
+
+    // create new raw table data if lineups changed
+    outer: for (let i = 0; i < database.lineups.length; i++) {
+        for (let j = 0; j < database.lineups[i].length; j++) {
+            if (typeof database.lineups[i][j] === 'object') continue
+            if (old_lineups[i][j] !== database.lineups[i][j]) {
+                raw_table_data = await window.loaderAPI.create_new_table(database.lineups, database.stats, database.props)
+                raw_deadline_table_data = await window.loaderAPI.create_new_table(database.lineups, database.stats_after_deadline, database.props)
+                break outer
+            }
+        }
+    }
+
+    // draw new, refreshed tables
+    drawTable(raw_table_data, database, options, 'table1')
+    setWidths('table1')
+
+    drawTable(raw_deadline_table_data, database, options, 'table2')
+    setWidths('table2')
+}
+
+function createTableSelector() {
+    const table_options = document.getElementById('dropdown_menu');
+    const tables = document.querySelectorAll('[class*="t-"]');
+    const added_options = []
+
+    tables.forEach(table => {
+        const game = table.dataset.game
+
+        if (!added_options.includes(game)) {
+            const option = document.createElement('div');
+            option.className = 'dropdown_item'
+
+            const checkbox = document.createElement('input');
+            checkbox.type = 'checkbox';
+            checkbox.checked = true;
+            checkbox.id = game;
+            checkbox.addEventListener('change', () => {
+                const matching_tables = document.querySelectorAll(`[data-game="${game}"]`);
+                matching_tables.forEach(table => {
+                    table.style.display = table.style.display === 'none' ? 'block' : 'none';
+                })
+            })
+
+            const label = document.createElement('label');
+            label.textContent = game;
+
+            option.appendChild(checkbox);
+            option.appendChild(label);
+            table_options.appendChild(option);
+
+            added_options.push(game);
+        }
+    })
+}
+
+function handleSwitchTable(target_table, other_table, full_season_button, trade_deadline_button) {
+    if (target_table.style.display === 'none') {
+        full_season_button.classList.toggle('selected');
+        trade_deadline_button.classList.toggle('selected');
+
+        const player_name = document.getElementById('player_info');
+
+        const table = document.querySelector(`#${other_table.id} .google-visualization-table > div`);
+        const scrollState = table.scrollTop
+
+        target_table.style.setProperty('display', 'block');
+        other_table.style.setProperty('display', 'none');
+
+        const new_table = document.querySelector(`#${target_table.id} .google-visualization-table > div`)
+        new_table.scrollTop = scrollState
+
+        const chart_container = document.getElementById('column_chart');
+        if (chart_container.classList.contains('drawn')) {
+            drawColumnChart(player_name.innerHTML, '', database).then()
+        }
+    }
+}
+
+function handleToggleChartsContainer() {
+    table_container.classList.toggle('expanded')
+    charts_container.classList.toggle('expanded')
+}
+
+function handleSwitchPieChart(e) {
+    const piechart1 = document.getElementById('pie_chart1');
+    const piechart2 = document.getElementById('pie_chart2');
+
+    if (piechart1.style.visibility === 'hidden') {
+        piechart1.style.setProperty('visibility', 'visible');
+        piechart2.style.setProperty('visibility', 'hidden');
+        e.target.innerHTML = "Regular Season"
+    } else {
+        piechart1.style.setProperty('visibility', 'hidden');
+        piechart2.style.setProperty('visibility', 'visible');
+        e.target.innerHTML = "Playoffs"
+    }
+}
+
+function handleResize(database) {
+    const player_name = document.getElementById('player_info');
+    if (player_name.innerHTML) {
+        let date_from
+
+        const table = document.getElementById('table1');
+        if (table.style.display === 'none') {
+            date_from = window.loaderAPI.trade_deadline_date
+        } else {
+            date_from = ''
+        }
+
+        drawPieChart(player_name.innerHTML, database, 'pie_chart1')
+        drawPieChart(player_name.innerHTML, database, 'pie_chart2')
+        drawColumnChart(player_name.innerHTML, date_from, database).then()
+    }
+}
+
 window.loaderAPI.load((e, raw_table_data, raw_deadline_table_data, database) => {
     // create schedule bar
     createScheduleBar(database.lineups)
@@ -651,49 +804,14 @@ window.loaderAPI.load((e, raw_table_data, raw_deadline_table_data, database) => 
         // set column widths
         setWidths('table1')
 
-        // dropdown checkbox list to select tables
-        const table_options = document.getElementById('dropdown_menu');
-        const tables = document.querySelectorAll('[class*="t-"]');
-        const added_options = []
-
-        tables.forEach(table => {
-            const game = table.dataset.game
-
-            if (!added_options.includes(game)) {
-                const option = document.createElement('div');
-                option.className = 'dropdown_item'
-
-                const checkbox = document.createElement('input');
-                checkbox.type = 'checkbox';
-                checkbox.checked = true;
-                checkbox.id = game;
-                checkbox.addEventListener('change', () => {
-                    const matching_tables = document.querySelectorAll(`[data-game="${game}"]`);
-                    matching_tables.forEach(table => {
-                        table.style.display = table.style.display === 'none' ? 'block' : 'none';
-                    })
-                })
-
-                const label = document.createElement('label');
-                label.textContent = game;
-
-                option.appendChild(checkbox);
-                option.appendChild(label);
-                table_options.appendChild(option);
-
-                added_options.push(game);
-            }
-        })
+        createTableSelector()
 
         // button to show dropdown menu
+        const table_options = document.getElementById('dropdown_menu');
         const dropdown_button = document.getElementById('dropdown_button');
-        dropdown_button.addEventListener('click', function() {
-            table_options.style.display = table_options.style.display === 'none' ? 'block' : 'none';
-            dropdown_button.classList.toggle('selected')
-        });
+        dropdown_button.addEventListener('click', function(e) { handleShowDropdown(e, table_options) });
     });
     google.charts.setOnLoadCallback(function() {
-        console.log(database.stats_after_deadline.points.length)
         if (database.stats_after_deadline.points.length === 0) return
 
         drawTable(raw_deadline_table_data, database, options, 'table2')
@@ -711,100 +829,17 @@ window.loaderAPI.load((e, raw_table_data, raw_deadline_table_data, database) => 
 
     // buttons to switch tables and column chart
     const full_season_button = document.getElementById('full_season');
-    full_season_button.addEventListener('click', function() {
-        if (table1.style.display === 'none') {
-            full_season_button.classList.toggle('selected');
-            trade_deadline_button.classList.toggle('selected');
-
-            const player_name = document.getElementById('player_info');
-
-            const table = document.querySelector('#table2 .google-visualization-table > div');
-            const scrollState = table.scrollTop
-
-            table1.style.setProperty('display', 'block');
-            table2.style.setProperty('display', 'none');
-
-            const new_table = document.querySelector('#table1 .google-visualization-table > div')
-            new_table.scrollTop = scrollState
-
-            const chart_container = document.getElementById('column_chart');
-            if (chart_container.classList.contains('drawn')) {
-                drawColumnChart(player_name.innerHTML, '', database).then()
-            }
-        }
-    })
     const trade_deadline_button = document.getElementById('post_trade_deadline');
+    full_season_button.addEventListener('click', function() { handleSwitchTable(table1, table2, full_season_button, trade_deadline_button) })
     if (database.stats_after_deadline.points.length > 0) {
-        trade_deadline_button.addEventListener('click', function() {
-            if (table2.style.display === 'none') {
-                full_season_button.classList.toggle('selected');
-                trade_deadline_button.classList.toggle('selected');
-
-                const player_name = document.getElementById('player_info');
-
-                const table = document.querySelector('#table1 .google-visualization-table > div');
-                const scrollState = table.scrollTop
-
-                table1.style.setProperty('display', 'none');
-                table2.style.setProperty('display', 'block');
-
-                const new_table = document.querySelector('#table2 .google-visualization-table > div')
-                new_table.scrollTop = scrollState
-
-                const chart_container = document.getElementById('column_chart');
-                if (chart_container.classList.contains('drawn')) {
-                    drawColumnChart(player_name.innerHTML, window.loaderAPI.trade_deadline_date, database).then()
-                }
-            }
-        })
+        trade_deadline_button.addEventListener('click', function() { handleSwitchTable(table2, table1, full_season_button, trade_deadline_button) })
     } else {
         trade_deadline_button.disabled = true
     }
 
     // button to refresh tables
     const refresh_button = document.getElementById('refresh_button');
-    refresh_button.addEventListener('click', async function() {
-        const old_lineups = database.lineups
-
-        database.lineups = await window.loaderAPI.makeRequestAndParse({
-            url: window.loaderAPI.lineups_endpoint,
-            method: 'GET'
-        })
-
-        // remove matchup cards
-        const matchup_cards = document.querySelectorAll('.matchup_card');
-        matchup_cards.forEach(card => {
-            card.remove()
-        })
-
-        // create new, refreshed schedule bar
-        createScheduleBar(database.lineups)
-
-        // remove existing tables
-        const tables = document.querySelectorAll('[class*="t-"]');
-        tables.forEach(table => {
-            table.remove()
-        })
-
-        // create new raw table data if lineups changed
-        outer: for (let i = 0; i < database.lineups.length; i++) {
-            for (let j = 0; j < database.lineups[i].length; j++) {
-                if (typeof database.lineups[i][j] === 'object') continue
-                if (old_lineups[i][j] !== database.lineups[i][j]) {
-                    raw_table_data = await window.loaderAPI.create_new_table(database.lineups, database.stats, database.props)
-                    raw_deadline_table_data = await window.loaderAPI.create_new_table(database.lineups, database.stats_after_deadline, database.props)
-                    break outer
-                }
-            }
-        }
-
-        // draw new, refreshed tables
-        drawTable(raw_table_data, database, options, 'table1')
-        setWidths('table1')
-
-        drawTable(raw_deadline_table_data, database, options, 'table2')
-        setWidths('table2')
-    })
+    refresh_button.addEventListener('click', async function() { handleRefresh(raw_table_data, raw_deadline_table_data, database, options) })
 
     // add custom header
     const table_container = document.getElementById('table_container')
@@ -813,51 +848,13 @@ window.loaderAPI.load((e, raw_table_data, raw_deadline_table_data, database) => 
     // chart container toggle button
     const toggle_button = document.getElementById('toggle_charts')
     const charts_container = document.getElementById('charts_container')
-    toggle_button.addEventListener('click', function () {
-        table_container.classList.toggle('expanded')
-        charts_container.classList.toggle('expanded')
-    })
+    toggle_button.addEventListener('click', function () { handleToggleChartsContainer(table_container, charts_container) })
 
     // button to switch pie chart
     const switch_pie_button = document.getElementById('switch_pie');
     switch_pie_button.innerHTML = "Regular Season"
-    switch_pie_button.addEventListener('click', function() {
-        const piechart1 = document.getElementById('pie_chart1');
-        const piechart2 = document.getElementById('pie_chart2');
-
-        if (piechart1.style.visibility === 'hidden') {
-            piechart1.style.setProperty('visibility', 'visible');
-            piechart2.style.setProperty('visibility', 'hidden');
-            switch_pie_button.innerHTML = "Regular Season"
-        } else {
-            piechart1.style.setProperty('visibility', 'hidden');
-            piechart2.style.setProperty('visibility', 'visible');
-            switch_pie_button.innerHTML = "Playoffs"
-        }
-    })
+    switch_pie_button.addEventListener('click', function(e) { handleSwitchPieChart(e) })
 
     // resize charts on window resize
-    addEventListener("resize", function() {
-        const player_name = document.getElementById('player_info');
-        if (player_name.innerHTML) {
-            let pie_id, date_from
-
-            const pie_chart = document.getElementById('pie_chart1');
-            if (pie_chart.style.visibility === 'hidden') {
-                pie_id = 'pie_chart2';
-            } else {
-                pie_id = 'pie_chart1';
-            }
-
-            const table = document.getElementById('table1');
-            if (table.style.display === 'none') {
-                date_from = window.loaderAPI.trade_deadline_date
-            } else {
-                date_from = ''
-            }
-
-            drawPieChart(player_name.innerHTML, database, pie_id)
-            drawColumnChart(player_name.innerHTML, date_from, database).then()
-        }
-    })
+    addEventListener("resize", function() { handleResize(database) })
 })

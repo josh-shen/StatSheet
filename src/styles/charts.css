@@ -28,6 +28,9 @@
     left: 0;
     box-sizing: border-box;
 }
+.hidden {
+    visibility: hidden;
+}
 
 /* column chart */
 #column_chart {
