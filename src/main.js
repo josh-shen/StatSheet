@@ -65,7 +65,7 @@ async function createWindow() {
             return create_table(lineups, stats, props)
         })
 
-        ipcMain.handle('make-http-request', async (event, options) => {
+        ipcMain.handle('fetch_stats', async (event, options) => {
             try {
                 const response = await axios(options);
                 return response.data
@@ -78,13 +78,30 @@ async function createWindow() {
             }
         })
 
-        ipcMain.handle('request-and-parse', async (event, options) => {
+        ipcMain.handle('fetch_lineups', async (event, options) => {
             try {
                 const response = await axios(options);
                 const { JSDOM } = require('jsdom');
                 const dom = new JSDOM(response.data);
 
                 return parse_lineups(dom)
+            } catch (error) {
+                const error_info = {
+                    errno: error.errno,
+                    code: error.code,
+                }
+                console.log(error_info)
+            }
+        })
+
+        ipcMain.handle('fetch_props', async () => {
+            try {
+                const ids = await fetch_game_ids()
+                return {
+                    pts: await fetch_props(ids, 'player_points'),
+                    reb: await fetch_props(ids, 'player_rebounds'),
+                    ast: await fetch_props(ids, 'player_assists')
+                }
             } catch (error) {
                 const error_info = {
                     errno: error.errno,

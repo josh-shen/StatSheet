@@ -5,10 +5,11 @@ const config = require('../config.js')
 contextBridge.exposeInMainWorld('loaderAPI', {
     load: (data) => ipcRenderer.on('load', data),
     trade_deadline_date: config.TRADE_DEADLINE,
-    create_new_table: (lineups, stats, props) => ipcRenderer.invoke('create_new_table', lineups, stats, props),
+    createNewTable: (lineups, stats, props) => ipcRenderer.invoke('create_new_table', lineups, stats, props),
     header: endpoints.header,
     lineups_endpoint: endpoints.LINEUP_ENDPOINT,
     player_ast_endpoint: endpoints.PLAYER_AST_ENDPOINT,
-    makeRequest: (options) => ipcRenderer.invoke('make-http-request', options),
-    makeRequestAndParse: (options) => ipcRenderer.invoke('request-and-parse', options)
+    fetchStats: (options) => ipcRenderer.invoke('fetch_stats', options),
+    fetchLineups: (options) => ipcRenderer.invoke('fetch_lineups', options),
+    fetchProps: () => ipcRenderer.invoke('fetch_props'),
 })

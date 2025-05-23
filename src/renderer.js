@@ -551,7 +551,7 @@ async function drawColumnChart(name, date_from, database) {
     if (name in data_cache && date_from in data_cache[name]) {
         dataset = data_cache[name][date_from]
     } else {
-        const response = await window.loaderAPI.makeRequest({
+        const response = await window.loaderAPI.fetchStats({
             url: window.loaderAPI.player_ast_endpoint(date_from, '2024-25', id),
             method: 'GET',
             headers: window.loaderAPI.header,
@@ -638,7 +638,7 @@ function handleShowDropdown(e, table_options) {
 async function handleRefresh(raw_table_data, raw_deadline_table_data, database, options) {
     const old_lineups = database.lineups
 
-    database.lineups = await window.loaderAPI.makeRequestAndParse({
+    database.lineups = await window.loaderAPI.fetchLineups({
         url: window.loaderAPI.lineups_endpoint,
         method: 'GET'
     })
@@ -652,15 +652,6 @@ async function handleRefresh(raw_table_data, raw_deadline_table_data, database, 
     // create new, refreshed schedule bar
     createScheduleBar(database.lineups)
 
-    // remove existing dropdown itms
-    const items = document.querySelectorAll('.dropdown_item');
-    items.forEach(item => {
-        item.remove()
-    })
-
-    // update table selector dropdown
-    createTableSelector()
-
     // remove existing tables
     const tables = document.querySelectorAll('[class*="t-"]');
     tables.forEach(table => {
@@ -672,8 +663,15 @@ async function handleRefresh(raw_table_data, raw_deadline_table_data, database, 
         for (let j = 0; j < database.lineups[i].length; j++) {
             if (typeof database.lineups[i][j] === 'object') continue
             if (old_lineups[i][j] !== database.lineups[i][j]) {
-                raw_table_data = await window.loaderAPI.create_new_table(database.lineups, database.stats, database.props)
-                raw_deadline_table_data = await window.loaderAPI.create_new_table(database.lineups, database.stats_after_deadline, database.props)
+                const props = await window.loaderAPI.fetchProps()
+                database.props.pts = props.pts
+                database.props.reb = props.reb
+                database.props.ast = props.ast
+
+                console.log(props, database)
+                raw_table_data = await window.loaderAPI.createNewTable(database.lineups, database.stats, database.props)
+                raw_deadline_table_data = await window.loaderAPI.createNewTable(database.lineups, database.stats_after_deadline, database.props)
+                console.log(raw_table_data)
                 break outer
             }
         }
@@ -685,6 +683,17 @@ async function handleRefresh(raw_table_data, raw_deadline_table_data, database, 
 
     drawTable(raw_deadline_table_data, database, options, 'table2')
     setWidths('table2')
+
+    // remove existing dropdown itms
+    const items = document.querySelectorAll('.dropdown_item');
+    items.forEach(item => {
+        item.remove()
+    })
+
+    // update table selector dropdown
+    createTableSelector()
+
+    return [raw_table_data, raw_deadline_table_data]
 }
 
 function createTableSelector() {
@@ -839,7 +848,11 @@ window.loaderAPI.load((e, raw_table_data, raw_deadline_table_data, database) => 
 
     // button to refresh tables
     const refresh_button = document.getElementById('refresh_button');
-    refresh_button.addEventListener('click', async function() { handleRefresh(raw_table_data, raw_deadline_table_data, database, options) })
+    refresh_button.addEventListener('click', async function() {
+        const new_tables = await handleRefresh(raw_table_data, raw_deadline_table_data, database, options)
+        raw_table_data = new_tables[0]
+        raw_deadline_table_data = new_tables[1]
+    })
 
     // add custom header
     const table_container = document.getElementById('table_container')
