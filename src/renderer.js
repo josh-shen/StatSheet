@@ -667,11 +667,10 @@ async function handleRefresh(raw_table_data, raw_deadline_table_data, database, 
                 database.props.pts = props.pts
                 database.props.reb = props.reb
                 database.props.ast = props.ast
-
-                console.log(props, database)
+                
                 raw_table_data = await window.loaderAPI.createNewTable(database.lineups, database.stats, database.props)
                 raw_deadline_table_data = await window.loaderAPI.createNewTable(database.lineups, database.stats_after_deadline, database.props)
-                console.log(raw_table_data)
+
                 break outer
             }
         }
