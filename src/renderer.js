@@ -645,7 +645,7 @@ function handleShowDropdown(e, table_options) {
     e.target.classList.toggle('selected')
 }
 
-async function handleRefresh(raw_table_data, raw_deadline_table_data, database, options) {
+async function handleRefresh(raw_table_data, raw_deadline_table_data, raw_playoffs_table_data, database, options) {
     const old_lineups = database.lineups
 
     database.lineups = await window.loaderAPI.fetchLineups({
@@ -680,7 +680,7 @@ async function handleRefresh(raw_table_data, raw_deadline_table_data, database, 
                 
                 raw_table_data = await window.loaderAPI.createNewTable(database.lineups, database.stats, database.props)
                 raw_deadline_table_data = await window.loaderAPI.createNewTable(database.lineups, database.stats_after_deadline, database.props)
-
+                raw_playoffs_table_data = await window.loaderAPI.createNewTable(database.lineups, database.playoffs_stats, database.props)
                 break outer
             }
         }
@@ -693,6 +693,9 @@ async function handleRefresh(raw_table_data, raw_deadline_table_data, database, 
     drawTable(raw_deadline_table_data, database, options, 'table2')
     setWidths('table2')
 
+    drawTable(raw_playoffs_table_data, database, options, 'table3')
+    setWidths('table3')
+
     // remove existing dropdown itms
     const items = document.querySelectorAll('.dropdown_item');
     items.forEach(item => {
@@ -702,7 +705,7 @@ async function handleRefresh(raw_table_data, raw_deadline_table_data, database, 
     // update table selector dropdown
     createTableSelector()
 
-    return [raw_table_data, raw_deadline_table_data]
+    return [raw_table_data, raw_deadline_table_data, raw_playoffs_table_data]
 }
 
 function createTableSelector() {
@@ -893,9 +896,10 @@ window.loaderAPI.load((e, raw_table_data, raw_deadline_table_data, raw_playoffs_
     // button to refresh tables
     const refresh_button = document.getElementById('refresh_button');
     refresh_button.addEventListener('click', async function() {
-        const new_tables = await handleRefresh(raw_table_data, raw_deadline_table_data, database, options)
+        const new_tables = await handleRefresh(raw_table_data, raw_deadline_table_data, raw_playoffs_table_data, database, options)
         raw_table_data = new_tables[0]
         raw_deadline_table_data = new_tables[1]
+        raw_playoffs_table_data = new_tables[2]
     })
 
     // add custom header

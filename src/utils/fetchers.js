@@ -23,7 +23,7 @@ async function fetch_stats(url) {
         const data = await response.data
 
         // set a small timeout to avoid rate limits
-        await new Promise(resolve => setTimeout(resolve, 500));
+        await new Promise(resolve => setTimeout(resolve, 300));
 
         return data['resultSets'][0]['rowSet']
     } catch (error) {
