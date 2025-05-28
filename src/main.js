@@ -48,6 +48,13 @@ async function createWindow() {
                 rebounds: await fetch_and_ping(function() {return fetch_stats(REB_ENDPOINT(config.TRADE_DEADLINE, config.SEASON))}, 1),
                 assists: await fetch_and_ping(function() {return fetch_stats(AST_ENDPOINT(config.TRADE_DEADLINE, config.SEASON))}, 1),
             },
+            playoffs_stats: {
+                points: await fetch_and_ping(function() {return fetch_stats(PTS_ENDPOINT(config.TRADE_DEADLINE, config.SEASON, 'Playoffs'))}, 1),
+                adv: await fetch_and_ping(function() {return fetch_stats(ADV_ENDPOINT(config.TRADE_DEADLINE, config.SEASON, 'Playoffs'))}, 1),
+                usg: await fetch_and_ping(function() {return fetch_stats(USG_ENDPOINT(config.TRADE_DEADLINE, config.SEASON, 'Playoffs'))}, 1),
+                rebounds: await fetch_and_ping(function() {return fetch_stats(REB_ENDPOINT(config.TRADE_DEADLINE, config.SEASON, 'Playoffs'))}, 1),
+                assists: await fetch_and_ping(function() {return fetch_stats(AST_ENDPOINT(config.TRADE_DEADLINE, config.SEASON, 'Playoffs'))}, 1)
+            },
             props: {
                 pts: await fetch_and_ping(function() {return fetch_props(ids, 'player_points')}, 1),
                 reb: await fetch_and_ping(function() {return fetch_props(ids, 'player_rebounds')}, 1),
@@ -60,12 +67,13 @@ async function createWindow() {
 
         const raw_table_data = create_table(database.lineups, database.stats, database.props)
         const raw_deadline_table_data = database.stats_after_deadline.points.length > 0 ? create_table(database.lineups, database.stats_after_deadline, database.props) : []
+        const raw_playoffs_table_data = database.playoffs_stats.points.length > 0 ? create_table(database.lineups, database.playoffs_stats, database.props) : []
 
         ipcMain.handle('create_new_table', (event, lineups, stats, props) => {
             return create_table(lineups, stats, props)
         })
 
-        ipcMain.handle('fetch_stats', async (event, options) => {
+        ipcMain.handle('fetch_player_assist_stats', async (event, options) => {
             try {
                 const response = await axios(options);
                 return response.data
@@ -124,7 +132,7 @@ async function createWindow() {
         })
         win.loadFile(join(__dirname, './index.html'))
             .then(() => {
-                win.webContents.send('load', raw_table_data, raw_deadline_table_data, database)
+                win.webContents.send('load', raw_table_data, raw_deadline_table_data, raw_playoffs_table_data, database)
             })
             .then(() => {
                 load_window.close()

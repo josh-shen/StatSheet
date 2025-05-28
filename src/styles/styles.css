@@ -72,7 +72,7 @@ div::-webkit-scrollbar {
 #table_container.expanded {
     height: 50%;
 }
-#table1, #table2 {
+#table1, #table2, #table3 {
     height: 100%;
     padding-top: 4px;
     overflow-y: auto;

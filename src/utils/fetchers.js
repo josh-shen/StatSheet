@@ -22,6 +22,9 @@ async function fetch_stats(url) {
         const response = await axios.get(url, {headers: header})
         const data = await response.data
 
+        // set a small timeout to avoid rate limits
+        await new Promise(resolve => setTimeout(resolve, 500));
+
         return data['resultSets'][0]['rowSet']
     } catch (error) {
         const error_info = {

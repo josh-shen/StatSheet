@@ -408,10 +408,12 @@ function updateCell(sender, tbody, r, c) {
 function updateTable(sender, i, r, c){
     const tbody1 = document.querySelector(`#table1 .t-${i} tbody`);
     const tbody2 = document.querySelector(`#table2 .t-${i} tbody`);
+    const tbody3 = document.querySelector(`#table3 .t-${i} tbody`);
 
     // update cells in both tables
     updateCell(sender, tbody1, r, c)
     updateCell(sender, tbody2, r, c)
+    updateCell(sender, tbody3, r, c)
 }
 
 /* pie chart and column chart */
@@ -526,7 +528,7 @@ function drawPieChart(name, database, pie_id) {
     chart.draw(datatable, options);
 }
 
-async function drawColumnChart(name, date_from, database) {
+async function drawColumnChart(name, date_from, type, database) {
     let team
     for (const group of database.lineups) {
         if (group.includes(name)) {
@@ -548,11 +550,12 @@ async function drawColumnChart(name, date_from, database) {
     const id = database.stats.assists[index][0]
 
     // check cache if data already exists before fetching
-    if (name in data_cache && date_from in data_cache[name]) {
-        dataset = data_cache[name][date_from]
+    const cache_index = type === 'Playoffs' ? type : date_from
+    if (name in data_cache && cache_index in data_cache[name]) {
+        dataset = data_cache[name][cache_index]
     } else {
-        const response = await window.loaderAPI.fetchStats({
-            url: window.loaderAPI.player_ast_endpoint(date_from, '2024-25', id),
+        const response = await window.loaderAPI.fetchPlayAssistStats({
+            url: window.loaderAPI.player_ast_endpoint(date_from, window.loaderAPI.season, type, id),
             method: 'GET',
             headers: window.loaderAPI.header,
         })
@@ -576,9 +579,9 @@ async function drawColumnChart(name, date_from, database) {
 
         // add dataset for player to cache
         if (!data_cache[name]) {
-            data_cache[name] = {[date_from]: dataset};
+            data_cache[name] = {[cache_index]: dataset};
         } else {
-            data_cache[name][date_from] = dataset;
+            data_cache[name][cache_index] = dataset;
         }
     }
 
@@ -616,17 +619,24 @@ async function handleNameClick(e, database) {
         player_div.innerHTML = text;
 
         // determine which set of stats to fetch for column chart
-        const table = document.getElementById('table1');
-        let date_from
-        if (table.style.display === 'none') {
+        const table1 = document.getElementById('table1');
+        const table2 = document.getElementById('table2');
+
+        let date_from, type
+        if (table1.style.display === 'block') {
+            date_from = ''
+            type = 'Regular%20Season'
+        } else if (table2.style.display === 'block') {
             date_from = window.loaderAPI.trade_deadline_date
+            type = 'Regular%20Season'
         } else {
             date_from = ''
+            type = 'Playoffs'
         }
 
         drawPieChart(text, database, 'pie_chart1')
         drawPieChart(text, database, 'pie_chart2')
-        await drawColumnChart(text, date_from, database)
+        await drawColumnChart(text, date_from, type, database)
     }
 }
 
@@ -730,25 +740,38 @@ function createTableSelector() {
     })
 }
 
-function handleSwitchTable(target_table, other_table, full_season_button, trade_deadline_button) {
+function handleSwitchTable(target_table, other_table1, other_table2, target_button, other_button1, other_button2, database) {
+    const old_table = other_table1.style.display === 'block' ? other_table1 : other_table2;
+    const old_button = other_table1.style.display === 'block' ? other_button1 : other_button2;
+
     if (target_table.style.display === 'none') {
-        full_season_button.classList.toggle('selected');
-        trade_deadline_button.classList.toggle('selected');
+        old_button.classList.toggle('selected');
+        target_button.classList.toggle('selected');
 
         const player_name = document.getElementById('player_info');
 
-        const table = document.querySelector(`#${other_table.id} .google-visualization-table > div`);
-        const scrollState = table.scrollTop
+        const scrollState = old_table.scrollTop
 
         target_table.style.setProperty('display', 'block');
-        other_table.style.setProperty('display', 'none');
+        other_table1.style.setProperty('display', 'none');
+        other_table2.style.setProperty('display', 'none');
 
-        const new_table = document.querySelector(`#${target_table.id} .google-visualization-table > div`)
-        new_table.scrollTop = scrollState
+        target_table.scrollTop = scrollState
 
+        let date_from, type
+        if (target_table.id === 'table1') {
+            date_from = ''
+            type = 'Regular%20Season'
+        } else if (target_table.id === 'table2') {
+            date_from = window.loaderAPI.trade_deadline_date
+            type = 'Regular%20Season'
+        } else if (target_table.id === 'table3') {
+            date_from = ''
+            type = 'Playoffs'
+        }
         const chart_container = document.getElementById('column_chart');
         if (chart_container.classList.contains('drawn')) {
-            drawColumnChart(player_name.innerHTML, '', database).then()
+            drawColumnChart(player_name.innerHTML, date_from, type, database).then()
         }
     }
 }
@@ -776,22 +799,28 @@ function handleSwitchPieChart(e) {
 function handleResize(database) {
     const player_name = document.getElementById('player_info');
     if (player_name.innerHTML) {
-        let date_from
+        const table1 = document.getElementById('table1');
+        const table2 = document.getElementById('table2');
 
-        const table = document.getElementById('table1');
-        if (table.style.display === 'none') {
+        let date_from, type
+        if (table1.style.display === 'block') {
+            date_from = ''
+            type = 'Regular%20Season'
+        } else if (table2.style.display === 'block') {
             date_from = window.loaderAPI.trade_deadline_date
+            type = 'Regular%20Season'
         } else {
             date_from = ''
+            type = 'Playoffs'
         }
 
         drawPieChart(player_name.innerHTML, database, 'pie_chart1')
         drawPieChart(player_name.innerHTML, database, 'pie_chart2')
-        drawColumnChart(player_name.innerHTML, date_from, database).then()
+        drawColumnChart(player_name.innerHTML, date_from, type, database).then()
     }
 }
 
-window.loaderAPI.load((e, raw_table_data, raw_deadline_table_data, database) => {
+window.loaderAPI.load((e, raw_table_data, raw_deadline_table_data, raw_playoffs_table_data, database) => {
     // create schedule bar
     createScheduleBar(database.lineups)
 
@@ -827,22 +856,38 @@ window.loaderAPI.load((e, raw_table_data, raw_deadline_table_data, database) => 
         // set column widths
         setWidths('table2')
     });
+    google.charts.setOnLoadCallback(function() {
+        if (database.playoffs_stats.points.length === 0) return
+
+        drawTable(raw_playoffs_table_data, database, options, 'table3')
+
+        // set column widths
+        setWidths('table3')
+    })
 
     const table1 = document.getElementById('table1');
     const table2 = document.getElementById('table2');
+    const table3 = document.getElementById('table3');
 
     // add click event listener to table cells
     table1.addEventListener('click', async function(e) { await handleNameClick(e, database) })
     table2.addEventListener('click', async function(e) { await handleNameClick(e, database) })
+    table3.addEventListener('click', async function(e) { await handleNameClick(e, database) })
 
     // buttons to switch tables and column chart
     const full_season_button = document.getElementById('full_season');
     const trade_deadline_button = document.getElementById('post_trade_deadline');
-    full_season_button.addEventListener('click', function() { handleSwitchTable(table1, table2, full_season_button, trade_deadline_button) })
+    const playoffs_button = document.getElementById('playoffs');
+    full_season_button.addEventListener('click', function() { handleSwitchTable(table1, table2, table3, full_season_button, trade_deadline_button, playoffs_button, database) })
     if (database.stats_after_deadline.points.length > 0) {
-        trade_deadline_button.addEventListener('click', function() { handleSwitchTable(table2, table1, full_season_button, trade_deadline_button) })
+        trade_deadline_button.addEventListener('click', function() { handleSwitchTable(table2, table1, table3, trade_deadline_button, full_season_button, playoffs_button, database) })
     } else {
         trade_deadline_button.disabled = true
+    }
+    if (database.playoffs_stats.points.length > 0) {
+        playoffs_button.addEventListener('click', function() { handleSwitchTable(table3, table1, table2, playoffs_button, full_season_button, trade_deadline_button, database) })
+    } else {
+        playoffs_button.disabled = true
     }
 
     // button to refresh tables

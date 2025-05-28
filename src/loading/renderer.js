@@ -6,6 +6,6 @@ document.addEventListener('DOMContentLoaded', function() {
         const old_value = Number(progress_counter.textContent)
         const new_value = old_value + value
         progress_counter.textContent = new_value.toString()
-        progress_bar.style.width = new_value / 48 * 100 + '%' // total of 48 fetches will be made
+        progress_bar.style.width = new_value / 53 * 100 + '%' // total of 53 fetches will be made
     })
 })
